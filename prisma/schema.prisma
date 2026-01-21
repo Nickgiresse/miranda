@@ -1,0 +1,144 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// --------------------------------------
+// 1. GESTION DES UTILISATEURS & ROLES
+// --------------------------------------
+
+enum Role {
+  USER // Utilisateur simple
+  ADMIN // Administrateur (Gère contenu + settings)
+  SUPER_ADMIN // Super Admin (Gère structure + admins)
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String // Hashé
+  fullName  String?
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+
+  // Gestion de l'abonnement
+  isSubscriptionActive Boolean   @default(false)
+  subscriptionEndDate  DateTime? // Date d'expiration (ex: +1 an après paiement)
+
+  // Relations
+  downloads Download[] // Historique des téléchargements (Optionnel)
+}
+
+// --------------------------------------
+// 2. STRUCTURE ACADEMIQUE (Dynamique)
+// --------------------------------------
+
+// Les niveaux (Niveau 1, Niveau 2)
+model Niveau {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique // "Niveau 1", "Niveau 2"
+  matieres Matiere[]
+}
+
+// Les Filières (SPH, IGC, MF, etc.) gérées par le Super Admin
+model Filiere {
+  id          String    @id @default(uuid())
+  code        String    @unique // ex: "IGC"
+  name        String // ex: "Ingénieur Génie Civil"
+  description String?   @db.Text
+  color       String // ex: "bleu" ou code Hex "#0000FF"
+  matieres    Matiere[]
+}
+
+// Les Matières (Maths, Physique, Droit...)
+// Une matière est liée à une Filière ET un Niveau précis
+model Matiere {
+  id   String @id @default(uuid())
+  name String
+
+  // Relations
+  filiereId String
+  filiere   Filiere @relation(fields: [filiereId], references: [id])
+
+  niveauId Int
+  niveau   Niveau @relation(fields: [niveauId], references: [id])
+
+  epreuves Epreuve[]
+
+  @@unique([name, filiereId, niveauId]) // Évite les doublons de matières pour une même classe
+}
+
+// --------------------------------------
+// 3. GESTION DU CONTENU (EPREUVES)
+// --------------------------------------
+
+enum EpreuveType {
+  CONCOURS
+  EPREUVE_SIMPLE
+  CC // Contrôle Continu
+  SN // Session Normale
+}
+
+model Epreuve {
+  id          String  @id @default(uuid())
+  title       String
+  year        Int? // Année de l'épreuve
+  description String? @db.Text
+
+  // Les Fichiers (Stockés sur Cloudinary/AWS S3, on garde l'URL ici)
+  fileUrl       String // Le PDF de l'épreuve
+  correctionUrl String? // Le PDF du corrigé (Optionnel)
+
+  // Propriétés
+  isPaid Boolean     @default(true) // Payant par défaut, Admin peut mettre false (Gratuit)
+  type   EpreuveType
+
+  // Relations
+  matiereId String
+  matiere   Matiere @relation(fields: [matiereId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// --------------------------------------
+// 4. PARAMETRES GLOBAUX (ADMIN)
+// --------------------------------------
+
+// Cette table aura une seule ligne unique pour stocker la config du site
+model SystemSettings {
+  id Int @id @default(1)
+
+  // Paramètres Commerciaux
+  yearlyPrice Float  @default(1000.0) // Prix de l'abonnement (modifiable par admin)
+  currency    String @default("FCFA")
+
+  // Paramètres Contact (Affichés dans le Footer/Page Contact)
+  contactEmail   String?
+  contactPhone   String?
+  contactAddress String?
+  welcomeMessage String? // Message d'accueil modifiable
+
+  updatedAt DateTime @updatedAt
+}
+
+// --------------------------------------
+// 5. OPTIONNEL : LOGS & TELECHARGEMENTS
+// --------------------------------------
+
+model Download {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  epreuveId    String // On garde juste l'ID pour ref, pas besoin de relation forte si on supprime l'épreuve
+  downloadedAt DateTime @default(now())
+}
