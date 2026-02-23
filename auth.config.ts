@@ -1,39 +1,32 @@
 import type { NextAuthConfig } from "next-auth"
 
-export const authConfig = {
-    pages: {
-        signIn: "/login",
+export const authConfig: NextAuthConfig = {
+  pages: {
+    signIn: "/login",
+  },
+  callbacks: {
+    authorized({ auth, request: { nextUrl } }) {
+      const isAdminRoute = nextUrl.pathname.startsWith("/admin")
+      if (isAdminRoute) return !!auth?.user
+      return true
     },
-    callbacks: {
-        authorized({ auth, request: { nextUrl } }) {
-            const isLoggedIn = !!auth?.user
-            const isOnAdmin = nextUrl.pathname.startsWith("/admin")
-            const isOnDashboard = nextUrl.pathname.startsWith("/dashboard")
-
-            if (isOnAdmin) {
-                if (isLoggedIn) {
-                    // Check role here if possible, but for simple auth check:
-                    return true
-                }
-                return false // Redirect unauthenticated users to login page
-            }
-            return true
-        },
-        // We will add session callbacks in the main auth.ts to avoid hydration issues in middleware
-        async session({ session, token }: any) {
-            if (token && session.user) {
-                session.user.role = token.role;
-                session.user.id = token.id;
-            }
-            return session;
-        },
-        async jwt({ token, user }: any) {
-            if (user) {
-                token.role = user.role;
-                token.id = user.id;
-            }
-            return token;
-        }
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = (user as { id?: string }).id
+        token.role = (user as { role?: string }).role
+        token.name = (user as { name?: string }).name
+      }
+      return token
     },
-    providers: [], // Configured in auth.ts
-} satisfies NextAuthConfig
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id as string
+        session.user.role = token.role as string
+        if (token.name) session.user.name = token.name as string
+      }
+      return session
+    },
+  },
+  providers: [], // vide — les providers sont dans lib/auth
+  session: { strategy: "jwt" },
+}

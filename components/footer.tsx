@@ -5,14 +5,14 @@ export function Footer() {
     const currentYear = new Date().getFullYear()
 
     return (
-        <footer className="border-t bg-muted/30">
+        <footer className="pt-20 bg-gray-900 text-white p-20 md:pt-50 ">
             <div className="container mx-auto px-4 py-12">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                     {/* Brand & Context */}
                     <div className="space-y-4">
                         <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-                            <div className="h-8 w-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
-                                <BookOpen className="h-5 w-5" />
+                            <div className="h-8 w-8  rounded-lg flex items-center justify-center text-primary-foreground">
+                                <img src="/logo.png" alt="Miranda" className="h-8 w-8" />
                             </div>
                             <span>Miranda</span>
                         </Link>

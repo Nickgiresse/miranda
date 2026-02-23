@@ -4,14 +4,11 @@ import { useState } from "react"
 import { Eye, Download, FileCheck, Lock } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-
-// Mock Auth Check (Replace with actual auth hook later)
-const useAuth = () => {
-    // Toggle this to test auth states
-    return { isAuthenticated: false }
-}
+import { cn } from "@/lib/utils"
+import { toast } from "@/components/ui/Toast"
 
 interface ExamCardProps {
+    id?: string
     title: string
     subject: string
     year: number
@@ -19,18 +16,24 @@ interface ExamCardProps {
     isPaid?: boolean
     fileUrl: string
     correctionUrl?: string
+    href?: string // URL pour la page de détail
 }
 
-export function ExamCard({ title, subject, year, type, isPaid = false, fileUrl, correctionUrl }: ExamCardProps) {
+export function ExamCard({ id, title, subject, year, type, isPaid = false, fileUrl, correctionUrl, href }: ExamCardProps) {
     const router = useRouter()
-    const { isAuthenticated } = useAuth()
     const [showAuthMessage, setShowAuthMessage] = useState(false)
 
-    const handleProtectedAction = (action: () => void) => {
-        if (!isAuthenticated) {
+    const isAuthed = async () => {
+        const res = await fetch("/api/me", { method: "GET" })
+        return res.ok
+    }
+
+    const handleProtectedAction = async (action: () => void) => {
+        const ok = await isAuthed()
+        if (!ok) {
             setShowAuthMessage(true)
-            // Optional: Redirect to login immediately or show a toast
-            router.push("/login?redirect=" + encodeURIComponent(window.location.pathname))
+            const next = window.location.pathname
+            router.push("/login?next=" + encodeURIComponent(next))
             return
         }
         action()
@@ -40,8 +43,31 @@ export function ExamCard({ title, subject, year, type, isPaid = false, fileUrl, 
         window.open(fileUrl, "_blank")
     }
 
+    const handleCardClick = (e: React.MouseEvent) => {
+        // Ne pas rediriger si on clique sur un bouton
+        if ((e.target as HTMLElement).closest("button")) {
+            return
+        }
+        if (href) {
+            ;(async () => {
+                const ok = await isAuthed()
+                if (!ok) {
+                    router.push("/login?next=" + encodeURIComponent(href))
+                    return
+                }
+                router.push(href)
+            })()
+        }
+    }
+
     return (
-        <div className="bg-card border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+        <div 
+            onClick={handleCardClick}
+            className={cn(
+                "bg-card border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow",
+                href && "cursor-pointer"
+            )}
+        >
             <div className="p-4 border-b bg-muted/40 flex justify-between items-start">
                 <div className="space-y-1">
                     <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-primary/10 text-primary uppercase tracking-wide">
@@ -67,7 +93,10 @@ export function ExamCard({ title, subject, year, type, isPaid = false, fileUrl, 
                 <div className="grid grid-cols-3 gap-2 pt-2">
                     {/* Action 1: Viewing (Always allowed for Free? Or always allowed? Spec says "View opens PDF in browser") */}
                     <button
-                        onClick={handleView}
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            void handleProtectedAction(handleView)
+                        }}
                         className="flex flex-col items-center justify-center gap-1 p-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors text-xs font-medium"
                     >
                         <Eye className="h-5 w-5 mb-1" />
@@ -76,7 +105,10 @@ export function ExamCard({ title, subject, year, type, isPaid = false, fileUrl, 
 
                     {/* Action 2: Download */}
                     <button
-                        onClick={() => handleProtectedAction(() => window.open(fileUrl, "_blank"))}
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            void handleProtectedAction(() => window.open(fileUrl, "_blank"))
+                        }}
                         className="flex flex-col items-center justify-center gap-1 p-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors text-xs font-medium text-primary"
                     >
                         <Download className="h-5 w-5 mb-1" />
@@ -85,12 +117,13 @@ export function ExamCard({ title, subject, year, type, isPaid = false, fileUrl, 
 
                     {/* Action 3: Correction */}
                     <button
-                        onClick={() => {
+                        onClick={(e) => {
+                            e.stopPropagation()
                             if (!correctionUrl) {
-                                alert("Pas de correction disponible pour cette épreuve.")
+                                toast.info("Pas de correction disponible pour cette épreuve.")
                                 return
                             }
-                            handleProtectedAction(() => window.open(correctionUrl, "_blank"))
+                            void handleProtectedAction(() => window.open(correctionUrl, "_blank"))
                         }}
                         className={
                             `flex flex-col items-center justify-center gap-1 p-2 rounded-lg transition-colors text-xs font-medium ${correctionUrl

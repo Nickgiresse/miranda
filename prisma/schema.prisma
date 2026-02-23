@@ -1,9 +1,7 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// Miranda - Prisma Schema
+// Next.js 15+ / PostgreSQL
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
+// URL de connexion : prisma.config.ts (Migrate) + adapter dans lib/prisma.ts (runtime)
 datasource db {
   provider = "postgresql"
 }
@@ -13,132 +11,189 @@ generator client {
 }
 
 // --------------------------------------
-// 1. GESTION DES UTILISATEURS & ROLES
+// 1. UTILISATEURS & RÔLES
 // --------------------------------------
 
 enum Role {
-  USER // Utilisateur simple
-  ADMIN // Administrateur (Gère contenu + settings)
-  SUPER_ADMIN // Super Admin (Gère structure + admins)
+  USER
+  ADMIN
+  SUPER_ADMIN
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String // Hashé
-  fullName  String?
-  role      Role     @default(USER)
-  createdAt DateTime @default(now())
+  id                    String    @id @default(uuid())
+  email                 String    @unique
+  fullName              String?
+  password              String
+  role                  Role      @default(USER)
+  isSubscriptionActive  Boolean   @default(false)
+  subscriptionEndDate   DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @default(now()) @updatedAt
 
-  // Gestion de l'abonnement
-  isSubscriptionActive Boolean   @default(false)
-  subscriptionEndDate  DateTime? // Date d'expiration (ex: +1 an après paiement)
+  accounts    Account[]
+  sessions    Session[]
+  abonnements Abonnement[]
+  downloads   Download[]
+}
 
-  // Relations
-  downloads Download[] // Historique des téléchargements (Optionnel)
+// NextAuth v5 (Prisma Adapter)
+model Account {
+  id                String  @id @default(uuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token     String? @db.Text
+  expires_at       Int?
+  token_type       String?
+  scope             String?
+  id_token         String? @db.Text
+  session_state    String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
 
 // --------------------------------------
-// 2. STRUCTURE ACADEMIQUE (Dynamique)
+// 2. STRUCTURE ACADÉMIQUE
 // --------------------------------------
 
-// Les niveaux (Niveau 1, Niveau 2)
 model Niveau {
-  id       Int       @id @default(autoincrement())
-  name     String    @unique // "Niveau 1", "Niveau 2"
-  matieres Matiere[]
+  id     Int    @id @default(autoincrement())
+  numero Int    @unique // 1 ou 2
+  label  String // ex: "Niveau 1", "Niveau 2"
+
+  filiereNiveaux FiliereNiveau[]
 }
 
-// Les Filières (SPH, IGC, MF, etc.) gérées par le Super Admin
 model Filiere {
-  id          String    @id @default(uuid())
-  code        String    @unique // ex: "IGC"
-  name        String // ex: "Ingénieur Génie Civil"
-  description String?   @db.Text
-  color       String // ex: "bleu" ou code Hex "#0000FF"
-  matieres    Matiere[]
+  id          String   @id @default(uuid())
+  nom         String
+  code        String   @unique // ex: SPH, IGC, MF
+  couleur     String   // hex ex: #22c55e
+  description String?  @db.Text
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  filiereNiveaux FiliereNiveau[]
+  matieres       Matiere[]
 }
 
-// Les Matières (Maths, Physique, Droit...)
-// Une matière est liée à une Filière ET un Niveau précis
-model Matiere {
-  id   String @id @default(uuid())
-  name String
+// Table pivot Filiere <-> Niveau
+model FiliereNiveau {
+  id         String   @id @default(uuid())
+  filiereId  String
+  niveauId   Int
+  createdAt  DateTime @default(now())
 
-  // Relations
-  filiereId String
-  filiere   Filiere @relation(fields: [filiereId], references: [id])
-
-  niveauId Int
-  niveau   Niveau @relation(fields: [niveauId], references: [id])
-
+  filiere Filiere @relation(fields: [filiereId], references: [id], onDelete: Cascade)
+  niveau  Niveau  @relation(fields: [niveauId], references: [id], onDelete: Cascade)
   epreuves Epreuve[]
 
-  @@unique([name, filiereId, niveauId]) // Évite les doublons de matières pour une même classe
+  @@unique([filiereId, niveauId])
+}
+
+model Matiere {
+  id        String   @id @default(uuid())
+  nom       String
+  filiereId String
+  createdAt DateTime @default(now())
+
+  filiere Filiere  @relation(fields: [filiereId], references: [id], onDelete: Cascade)
+  epreuves Epreuve[]
 }
 
 // --------------------------------------
-// 3. GESTION DU CONTENU (EPREUVES)
+// 3. ÉPREUVES
 // --------------------------------------
 
-enum EpreuveType {
+enum TypeEpreuve {
   CONCOURS
+  CC
+  SN
   EPREUVE_SIMPLE
-  CC // Contrôle Continu
-  SN // Session Normale
 }
 
 model Epreuve {
-  id          String  @id @default(uuid())
-  title       String
-  year        Int? // Année de l'épreuve
-  description String? @db.Text
+  id               String       @id @default(uuid())
+  titre            String
+  type             TypeEpreuve
+  fichierEpreuve   String       // URL ou chemin du PDF
+  fichierCorrige   String?      // optionnel
+  isGratuit        Boolean      @default(false)
+  isPublished      Boolean      @default(false)
+  filiereNiveauId  String
+  matiereId        String
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
 
-  // Les Fichiers (Stockés sur Cloudinary/AWS S3, on garde l'URL ici)
-  fileUrl       String // Le PDF de l'épreuve
-  correctionUrl String? // Le PDF du corrigé (Optionnel)
+  filiereNiveau FiliereNiveau @relation(fields: [filiereNiveauId], references: [id], onDelete: Cascade)
+  matiere       Matiere       @relation(fields: [matiereId], references: [id], onDelete: Cascade)
+  downloads     Download[]
+}
 
-  // Propriétés
-  isPaid Boolean     @default(true) // Payant par défaut, Admin peut mettre false (Gratuit)
-  type   EpreuveType
+// --------------------------------------
+// 4. ABONNEMENTS & TÉLÉCHARGEMENTS
+// --------------------------------------
 
-  // Relations
-  matiereId String
-  matiere   Matiere @relation(fields: [matiereId], references: [id], onDelete: Cascade)
-
+model Abonnement {
+  id        String   @id @default(uuid())
+  userId    String
+  prix      Float
+  dateDebut DateTime
+  dateFin   DateTime
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-// --------------------------------------
-// 4. PARAMETRES GLOBAUX (ADMIN)
-// --------------------------------------
-
-// Cette table aura une seule ligne unique pour stocker la config du site
-model SystemSettings {
-  id Int @id @default(1)
-
-  // Paramètres Commerciaux
-  yearlyPrice Float  @default(1000.0) // Prix de l'abonnement (modifiable par admin)
-  currency    String @default("FCFA")
-
-  // Paramètres Contact (Affichés dans le Footer/Page Contact)
-  contactEmail   String?
-  contactPhone   String?
-  contactAddress String?
-  welcomeMessage String? // Message d'accueil modifiable
-
-  updatedAt DateTime @updatedAt
+enum DownloadType {
+  EPREUVE
+  CORRIGE
 }
-
-// --------------------------------------
-// 5. OPTIONNEL : LOGS & TELECHARGEMENTS
-// --------------------------------------
 
 model Download {
-  id           String   @id @default(uuid())
-  userId       String
-  user         User     @relation(fields: [userId], references: [id])
-  epreuveId    String // On garde juste l'ID pour ref, pas besoin de relation forte si on supprime l'épreuve
-  downloadedAt DateTime @default(now())
+  id        String       @id @default(uuid())
+  userId    String
+  epreuveId String
+  type      DownloadType
+  createdAt DateTime     @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  epreuve Epreuve @relation(fields: [epreuveId], references: [id], onDelete: Cascade)
+}
+
+// --------------------------------------
+// 5. PARAMÈTRES GLOBAUX (singleton)
+// --------------------------------------
+
+model SystemSettings {
+  id               Int     @id @default(1)
+  prixAbonnement   Float   @default(1000)
+  contactEmail     String?
+  contactTel       String?
+  contactAdresse   String? @db.Text
+  updatedAt       DateTime @updatedAt
 }
