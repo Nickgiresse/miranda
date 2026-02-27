@@ -8,10 +8,11 @@ if (!directUrl) {
   throw new Error("DIRECT_URL manquant. Définis-le dans .env ou .env.local")
 }
 
+// migrate.adapter est supporté à l'exécution par Prisma CLI mais pas exposé dans le type PrismaConfig (v7)
 export default defineConfig({
   schema: "prisma/schema.prisma",
   datasource: {
-    url: directUrl,             // plus de env("...")
+    url: directUrl,
   },
   migrate: {
     async adapter() {
@@ -24,4 +25,5 @@ export default defineConfig({
       return new PrismaPg(pool)
     },
   },
-})
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any)
