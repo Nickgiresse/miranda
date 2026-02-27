@@ -6,6 +6,9 @@ import { authConfig } from "@/auth.config"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
+  pages: {
+    signIn: "/login",
+  },
   providers: [
     Credentials({
       name: "credentials",

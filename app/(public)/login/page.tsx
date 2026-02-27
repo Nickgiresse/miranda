@@ -1,9 +1,8 @@
 "use client"
 
-import { Suspense, useEffect } from "react"
+import { Suspense, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useActionState } from "react"
 import { Lock, Mail, XCircle, Loader2 } from "lucide-react"
 import Logo from "@/components/Logo"
 import { useSearchParams } from "next/navigation"
@@ -15,28 +14,40 @@ function LoginForm() {
   const searchParams = useSearchParams()
   const { update } = useSession()
   const next = searchParams.get("next") || ""
-  const [state, formAction, pending] = useActionState(loginAction, null)
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    if (state?.success) {
-      update().then(() => {
-        router.push(
-          state.role === "ADMIN" || state.role === "SUPER_ADMIN"
-            ? "/admin/dashboard"
-            : next || "/"
-        )
-        router.refresh()
-      })
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setLoading(true)
+    setError("")
+
+    const form = e.currentTarget
+    const formData = new FormData(form)
+    const result = await loginAction(formData)
+
+    if (result?.error) {
+      setError(result.error)
+      setLoading(false)
+      return
     }
-  }, [state, next, router, update])
 
-  const error = state?.error
+    const updatedSession = await update()
+    const role = (updatedSession?.user as { role?: string })?.role
+    if (role === "ADMIN" || role === "SUPER_ADMIN") {
+      router.push("/admin/dashboard")
+    } else {
+      router.push(next || "/")
+    }
+    router.refresh()
+    setLoading(false)
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Logo href="/" width={130} height={44} className="mb-8" />
+          <Logo href="/" width={130} height={44} className="mb-6 mx-auto" />
           <h1 className="text-2xl font-bold text-slate-900">Bon retour 👋</h1>
           <p className="text-slate-500 text-sm mt-2">
             Connectez-vous à votre compte Miranda
@@ -45,13 +56,13 @@ function LoginForm() {
 
         <div className="bg-white rounded-2xl shadow-sm p-8">
           {error && (
-            <div className="flex items-center gap-2.5 bg-red-50 text-red-600 rounded-xl px-4 py-3 text-sm mb-6">
+            <div className="flex items-center gap-2 bg-red-50 text-red-600 rounded-xl px-4 py-3 text-sm mb-6">
               <XCircle className="w-4 h-4 flex-shrink-0" />
               {error}
             </div>
           )}
 
-          <form action={formAction} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <input type="hidden" name="next" value={next} />
 
             <div>
@@ -63,10 +74,10 @@ function LoginForm() {
                 <input
                   type="email"
                   name="email"
-                  placeholder="vous@exemple.cm"
                   required
-                  disabled={pending}
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl text-sm ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 placeholder:text-slate-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  placeholder="vous@exemple.cm"
+                  disabled={loading}
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl text-sm ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 placeholder:text-slate-300 transition-all duration-200 disabled:opacity-50"
                 />
               </div>
             </div>
@@ -88,20 +99,20 @@ function LoginForm() {
                 <input
                   type="password"
                   name="password"
-                  placeholder="••••••••"
                   required
-                  disabled={pending}
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl text-sm ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 placeholder:text-slate-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  placeholder="••••••••"
+                  disabled={loading}
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl text-sm ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 placeholder:text-slate-300 transition-all duration-200 disabled:opacity-50"
                 />
               </div>
             </div>
 
             <button
               type="submit"
-              disabled={pending}
+              disabled={loading}
               className="w-full py-3 bg-slate-900 hover:bg-slate-700 text-white rounded-xl font-semibold text-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
             >
-              {pending ? (
+              {loading ? (
                 <span className="flex items-center justify-center gap-2">
                   <Loader2 className="w-4 h-4 animate-spin" />
                   Connexion...
@@ -127,28 +138,15 @@ function LoginForm() {
   )
 }
 
-function LoginFallback() {
-  return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <Logo href="/" width={130} height={44} className="mb-8" />
-          <h1 className="text-2xl font-bold text-slate-900">Bon retour 👋</h1>
-          <p className="text-slate-500 text-sm mt-2">
-            Connectez-vous à votre compte Miranda
-          </p>
-        </div>
-        <div className="bg-white rounded-2xl shadow-sm p-8 flex items-center justify-center min-h-[280px]">
-          <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export default function LoginPage() {
   return (
-    <Suspense fallback={<LoginFallback />}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-slate-300 border-t-slate-900 rounded-full animate-spin" />
+        </div>
+      }
+    >
       <LoginForm />
     </Suspense>
   )

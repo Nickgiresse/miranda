@@ -21,10 +21,10 @@ export default function Home() {
         SECTION 1: HERO (Image + Message + CTA) 
         -------------------------------------------
       */}
-      <section className="relative p-20 md:py-30 flex flex-row items-center justify-center overflow-hidden md:flex-cols flex-row bg-white">
+      <section className="relative py-16 md:py-24 px-4 md:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-center overflow-hidden bg-white gap-8 md:gap-12">
         {/* Content */}
         <motion.div
-          className="relative px-4 text-center md:text-left"
+          className="relative px-4 text-center md:text-left max-w-4xl md:max-w-none"
           initial="hidden"
           animate="show"
           variants={{ hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.12 } } }}
@@ -39,43 +39,43 @@ export default function Home() {
           <motion.h1
             variants={fadeUp}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="text-4xl md:text-6xl font-extrabold tracking-tight leading-tight max-w-4xl text-slate-900"
+            className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight text-slate-900 mb-6"
           >
             Accédez aux meilleures <span className="text-slate-900">épreuves et corrections</span> pour exceller
           </motion.h1>
           <motion.p
             variants={fadeUp}
             transition={{ duration: 0.6, ease: "easeOut", delay: 0.05 }}
-            className="text-lg md:text-xl text-slate-600 max-w-2xl"
+            className="text-base md:text-lg text-slate-600 max-w-2xl mx-auto md:mx-0 mb-8"
           >
             La plateforme de référence pour les étudiants du Collège Mvong. Téléchargez des concours, devoirs et sujets d'examen pour préparer votre avenir.
           </motion.p>
           <motion.div
             variants={fadeUp}
             transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
-            className="flex flex-col sm:flex-row gap-4 pt-4"
+            className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start"
           >
             <Link
               href="/register"
-              className="px-8 py-3.5 bg-slate-900 text-white font-semibold rounded-lg hover:bg-slate-700 transition-all flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-8 py-4 bg-slate-900 text-white font-semibold rounded-2xl hover:bg-slate-700 transition-all flex items-center justify-center gap-2 text-center text-sm"
             >
               Commencer maintenant <ArrowRight className="h-5 w-5" />
             </Link>
             <Link
               href="/epreuves"
-              className="px-8 py-3.5 bg-white text-slate-900 font-semibold rounded-lg hover:bg-slate-50 transition-all border border-slate-200"
+              className="w-full sm:w-auto px-8 py-4 bg-white text-slate-900 font-semibold rounded-2xl hover:bg-slate-50 transition-all border border-slate-200 flex items-center justify-center gap-2 text-center text-sm"
             >
               Explorer les épreuves
             </Link>
           </motion.div>
         </motion.div>
         <motion.div
-          className=""
+          className="flex justify-center"
           initial={{ opacity: 0, x: 24 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.7, ease: "easeOut", delay: 0.15 }}
         >
-          <Image src="/hero.jpg" alt="Étudiants apprenant ensemble" width={540} height={240} className="rounded-2xl w-100 md:w-150" />
+          <Image src="/hero.jpg" alt="Étudiants apprenant ensemble" width={540} height={240} className="rounded-2xl w-full max-w-md md:max-w-lg object-cover" />
         </motion.div>
       </section>
 
@@ -84,9 +84,9 @@ export default function Home() {
         SECTION 2: COLLEGE MVONG (About) 
         -------------------------------------------
       */}
-      <section className="py-20 bg-slate-50 flex flex-row items-center p-20 md:p-50">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+      <section className="py-12 md:py-16 lg:py-20 bg-slate-50 px-4 md:px-6 lg:px-8">
+        <div className="container mx-auto max-w-6xl">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
               className="space-y-6"
               initial="hidden"
@@ -95,7 +95,7 @@ export default function Home() {
               variants={fadeUp}
               transition={{ duration: 0.6, ease: "easeOut" }}
             >
-              <h2 className="text-3xl font-bold tracking-tight text-slate-900">À propos de Miranda & Collège Vogt</h2>
+              <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">À propos de Miranda & Collège Vogt</h2>
               <p className="text-slate-600 text-lg leading-relaxed">
                 Née de l'excellence académique du <strong>Collège Mvong</strong>, cette application a été conçue pour offrir aux élèves un accès illimité aux ressources pédagogiques.
                 Que vous soyez en Niveau 1 ou Niveau 2, nous centralisons toutes les épreuves passées pour faciliter vos révisions.
@@ -146,15 +146,15 @@ export default function Home() {
         SECTION 3: PRICING (Subscription) 
         -------------------------------------------
       */}
-      <section className="py-20 bg-white flex flex-row items-center justify-center p-20 md:p-50">
-        <div className="container mx-auto text-center">
+      <section className="py-12 md:py-16 lg:py-20 bg-white px-4 md:px-6 lg:px-8">
+        <div className="container mx-auto text-center max-w-4xl">
           <motion.h2
             initial="hidden"
             whileInView="show"
             viewport={viewportOnce}
             variants={fadeUp}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="text-3xl font-bold tracking-tight text-slate-900 mb-4"
+            className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 mb-4"
           >
             Investissez dans votre réussite
           </motion.h2>
@@ -223,8 +223,8 @@ export default function Home() {
         SECTION 4: CATEGORIES (Selection) 
         -------------------------------------------
       */}
-      <section className="py-20 bg-slate-50 flex flex-row items-center justify-center p-20 md:p-50">
-        <div className="container mx-auto px-4">
+      <section className="py-12 md:py-16 lg:py-20 bg-slate-50 px-4 md:px-6 lg:px-8">
+        <div className="container mx-auto max-w-4xl">
           <motion.div
             className="text-center mb-16"
             initial="hidden"
@@ -233,11 +233,11 @@ export default function Home() {
             variants={fadeUp}
             transition={{ duration: 0.6, ease: "easeOut" }}
           >
-            <h2 className="text-3xl font-bold tracking-tight text-slate-900 mb-4">Explorez par Niveau</h2>
+            <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 mb-4">Explorez par Niveau</h2>
             <p className="text-slate-600">Choisissez votre niveau pour accéder aux matières et épreuves correspondantes.</p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 max-w-4xl mx-auto">
             {/* Niveau 1 */}
             <motion.div
               initial={{ opacity: 0, y: 18 }}
@@ -294,19 +294,19 @@ export default function Home() {
         SECTION 5: BONUS (Why Us) 
         -------------------------------------------
       */}
-      <section className="py-20 bg-white p-20 md:p-50">
-        <div className="container mx-auto px-4 text-center">
+      <section className="py-12 md:py-16 lg:py-20 bg-white px-4 md:px-6 lg:px-8">
+        <div className="container mx-auto text-center max-w-5xl">
           <motion.h2
             initial="hidden"
             whileInView="show"
             viewport={viewportOnce}
             variants={fadeUp}
             transition={{ duration: 0.6, ease: "easeOut" }}
-            className="text-2xl font-bold text-slate-900 mb-12"
+            className="text-xl md:text-2xl font-bold text-slate-900 mb-8 md:mb-12"
           >
             Pourquoi des milliers d'étudiants nous font confiance ?
           </motion.h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
             <motion.div
               className="flex flex-col items-center gap-2 bg-slate-50 text-slate-900 rounded-2xl p-4 hover:scale-105 transition-all duration-300"
               initial={{ opacity: 0, y: 14 }}
@@ -314,9 +314,9 @@ export default function Home() {
               viewport={viewportOnce}
               transition={{ duration: 0.5, ease: "easeOut" }}
             >
-              <Users className="h-10 w-10 text-slate-700 mb-2" />
-              <span className="text-3xl font-bold">500+</span>
-              <span className="text-sm text-slate-600">Étudiants actifs</span>
+              <Users className="h-8 w-8 md:h-10 md:w-10 text-slate-700 mb-2" />
+              <span className="text-2xl md:text-4xl font-bold">500+</span>
+              <span className="text-xs md:text-sm text-slate-600">Étudiants actifs</span>
             </motion.div>
             <motion.div
               className="flex flex-col items-center gap-2 bg-slate-50 text-slate-900 rounded-2xl p-4 hover:scale-105 transition-all duration-300"
@@ -325,9 +325,9 @@ export default function Home() {
               viewport={viewportOnce}
               transition={{ duration: 0.5, ease: "easeOut", delay: 0.05 }}
             >
-              <BookOpen className="h-10 w-10 text-slate-700 mb-2" />
-              <span className="text-3xl font-bold">1000+</span>
-              <span className="text-sm text-slate-600">Épreuves disponibles</span>
+              <BookOpen className="h-8 w-8 md:h-10 md:w-10 text-slate-700 mb-2" />
+              <span className="text-2xl md:text-4xl font-bold">1000+</span>
+              <span className="text-xs md:text-sm text-slate-600">Épreuves disponibles</span>
             </motion.div>
             <motion.div
               className="flex flex-col items-center gap-2 bg-slate-50 text-slate-900 rounded-2xl p-4 hover:scale-105 transition-all duration-300"
@@ -336,9 +336,9 @@ export default function Home() {
               viewport={viewportOnce}
               transition={{ duration: 0.5, ease: "easeOut", delay: 0.1 }}
             >
-              <CheckCircle className="h-10 w-10 text-slate-700 mb-2" />
-              <span className="text-3xl font-bold">100%</span>
-              <span className="text-sm text-slate-600">Fiabilité</span>
+              <CheckCircle className="h-8 w-8 md:h-10 md:w-10 text-slate-700 mb-2" />
+              <span className="text-2xl md:text-4xl font-bold">100%</span>
+              <span className="text-xs md:text-sm text-slate-600">Fiabilité</span>
             </motion.div>
             <motion.div
               className="flex flex-col items-center gap-2 bg-slate-50 text-slate-900 rounded-2xl p-4 hover:scale-105 transition-all duration-300"
@@ -347,9 +347,9 @@ export default function Home() {
               viewport={viewportOnce}
               transition={{ duration: 0.5, ease: "easeOut", delay: 0.15 }}
             >
-              <GraduationCap className="h-10 w-10 text-slate-700 mb-2" />
-              <span className="text-3xl font-bold">24/7</span>
-              <span className="text-sm text-slate-600">Accès illimité</span>
+              <GraduationCap className="h-8 w-8 md:h-10 md:w-10 text-slate-700 mb-2" />
+              <span className="text-2xl md:text-4xl font-bold">24/7</span>
+              <span className="text-xs md:text-sm text-slate-600">Accès illimité</span>
             </motion.div>
           </div>
         </div>
