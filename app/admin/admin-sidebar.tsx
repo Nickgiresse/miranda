@@ -96,7 +96,7 @@ export function AdminSidebar({
             type="button"
             onClick={async () => {
               await signOut({ redirect: false })
-              router.push("/")
+              router.push("/login")
               router.refresh()
             }}
             className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 transition-all duration-200 text-xs font-medium"

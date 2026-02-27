@@ -153,7 +153,7 @@ export function Navbar() {
                         onClick={async () => {
                           await signOut({ redirect: false })
                           setUserOpen(false)
-                          router.push("/")
+                          router.push("/login")
                           router.refresh()
                         }}
                         className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-red-500 hover:bg-red-50 transition-all duration-150"

@@ -11,7 +11,7 @@ export function LogoutButton() {
       type="button"
       onClick={async () => {
         await signOut({ redirect: false })
-        router.push("/")
+        router.push("/login")
         router.refresh()
       }}
       className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
