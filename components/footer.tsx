@@ -1,131 +1,100 @@
 import Link from "next/link"
-import { BookOpen, Facebook, Twitter, Instagram, Linkedin, Mail, Phone, MapPin } from "lucide-react"
+import Logo from "@/components/Logo"
+
+const navItems = [
+  { label: "Accueil", href: "/" },
+  { label: "Épreuves", href: "/epreuves" },
+  { label: "Concours", href: "/concours" },
+  { label: "Contact", href: "/contact" },
+] as const
 
 export function Footer() {
-    const currentYear = new Date().getFullYear()
-
-    return (
-        <footer className="pt-20 bg-gray-900 text-white p-20 md:pt-50 ">
-            <div className="container mx-auto px-4 py-12">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                    {/* Brand & Context */}
-                    <div className="space-y-4">
-                        <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-                            <div className="h-8 w-8  rounded-lg flex items-center justify-center text-primary-foreground">
-                                <img src="/logo.png" alt="Miranda" className="h-8 w-8" />
-                            </div>
-                            <span>Miranda</span>
-                        </Link>
-                        <p className="text-sm text-muted-foreground leading-relaxed">
-                            Votre partenaire académique pour la réussite. Accédez aux meilleures épreuves et corrections pour exceller.
-                        </p>
-                        <div className="flex gap-4">
-                            <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                                <Facebook className="h-5 w-5" />
-                            </Link>
-                            <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                                <Twitter className="h-5 w-5" />
-                            </Link>
-                            <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                                <Instagram className="h-5 w-5" />
-                            </Link>
-                            <Link href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                                <Linkedin className="h-5 w-5" />
-                            </Link>
-                        </div>
-                    </div>
-
-                    {/* Product Navigation */}
-                    <div>
-                        <h3 className="font-semibold mb-4">Navigation</h3>
-                        <ul className="space-y-2 text-sm">
-                            <li>
-                                <Link href="/" className="text-muted-foreground hover:text-primary transition-colors">
-                                    Accueil
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/concours" className="text-muted-foreground hover:text-primary transition-colors">
-                                    Concours
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/epreuves" className="text-muted-foreground hover:text-primary transition-colors">
-                                    Épreuves
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/contact" className="text-muted-foreground hover:text-primary transition-colors">
-                                    Contact
-                                </Link>
-                            </li>
-                        </ul>
-                    </div>
-
-                    {/* Company Links */}
-                    <div>
-                        <h3 className="font-semibold mb-4">Entreprise</h3>
-                        <ul className="space-y-2 text-sm">
-                            <li>
-                                <Link href="/about" className="text-muted-foreground hover:text-primary transition-colors">
-                                    À propos
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/blog" className="text-muted-foreground hover:text-primary transition-colors">
-                                    Blog / Ressources
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/careers" className="text-muted-foreground hover:text-primary transition-colors">
-                                    Carrières
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/contact" className="text-muted-foreground hover:text-primary transition-colors">
-                                    Support
-                                </Link>
-                            </li>
-                        </ul>
-                    </div>
-
-                    {/* Contact & Legal */}
-                    <div>
-                        <h3 className="font-semibold mb-4">Légal & Contact</h3>
-                        <ul className="space-y-2 text-sm">
-                            <li>
-                                <Link href="/terms" className="text-muted-foreground hover:text-primary transition-colors">
-                                    Conditions d'utilisation
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/privacy" className="text-muted-foreground hover:text-primary transition-colors">
-                                    Politique de confidentialité
-                                </Link>
-                            </li>
-                            <li>
-                                <Link href="/cookies" className="text-muted-foreground hover:text-primary transition-colors">
-                                    Politique des cookies
-                                </Link>
-                            </li>
-                        </ul>
-                        <div className="mt-4 pt-4 border-t space-y-2 text-sm text-muted-foreground">
-                            <div className="flex items-center gap-2">
-                                <Mail className="h-4 w-4" />
-                                <span>contact@miranda.com</span>
-                            </div>
-                            {/* Optional Phone/Map */}
-                        </div>
-                    </div>
-                </div>
-
-                <div className="mt-12 pt-8 border-t flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
-                    <p>© {currentYear} Miranda. Tous droits réservés.</p>
-                    <div className="flex gap-4">
-                        {/* Additional bottom links can go here */}
-                    </div>
-                </div>
+  return (
+    <footer className="bg-slate-900 text-slate-400">
+      <div className="max-w-6xl mx-auto px-4 py-14">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
+          {/* Brand */}
+          <div className="md:col-span-1">
+            <div className="mb-4">
+              <Logo
+                href="/"
+                width={100}
+                height={34}
+                className="brightness-0 invert"
+              />
             </div>
-        </footer>
-    )
+            <p className="text-sm leading-relaxed">
+              La plateforme officielle des épreuves du Collège Mvong.
+            </p>
+          </div>
+
+          {/* Navigation */}
+          <div>
+            <p className="text-xs font-semibold text-white uppercase tracking-wider mb-4">
+              Navigation
+            </p>
+            <ul className="space-y-2.5">
+              {navItems.map(({ label, href }) => (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    className="text-sm hover:text-white transition-colors duration-200"
+                  >
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Filières */}
+          <div>
+            <p className="text-xs font-semibold text-white uppercase tracking-wider mb-4">
+              Filières
+            </p>
+            <ul className="space-y-2.5">
+              {["SPH", "IGC", "MF", "IGEA", "INGE"].map((code) => (
+                <li key={code}>
+                  <span className="text-sm">{code}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Contact */}
+          <div>
+            <p className="text-xs font-semibold text-white uppercase tracking-wider mb-4">
+              Contact
+            </p>
+            <ul className="space-y-2.5 text-sm">
+              <li>contact@miranda.cm</li>
+              <li>+237 690 021 434</li>
+              <li>Collège Mvong, Cameroun</li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Bottom */}
+        <div className="mt-12 pt-6 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-xs">
+            © {new Date().getFullYear()} Miranda. Tous droits réservés.
+          </p>
+          <div className="flex gap-5 text-xs">
+            <Link
+              href="/mentions-legales"
+              className="hover:text-white transition-colors duration-200"
+            >
+              Mentions légales
+            </Link>
+            <Link
+              href="/confidentialite"
+              className="hover:text-white transition-colors duration-200"
+            >
+              Confidentialité
+            </Link>
+          </div>
+        </div>
+      </div>
+    </footer>
+  )
 }

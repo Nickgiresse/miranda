@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { NextRequest, NextResponse } from "next/server"
+import { withDB } from "@/lib/db"
 import { requireAdmin } from "@/lib/auth/helpers"
 import { z } from "zod"
 
@@ -29,24 +29,25 @@ export async function GET(req: Request) {
     const filiereId = searchParams.get("filiere")
     const typeParam = searchParams.get("type")
 
-    const where: Record<string, unknown> = { isPublished: true }
-    if (isTypeEpreuve(typeParam)) where.type = typeParam
-    if (filiereId || niveauNumero) {
-      where.filiereNiveau = {}
-      if (filiereId) (where.filiereNiveau as Record<string, string>).filiereId = filiereId
-      if (niveauNumero) {
-        const niveau = await prisma.niveau.findFirst({ where: { numero: Number(niveauNumero) } })
-        if (niveau) (where.filiereNiveau as Record<string, number>).niveauId = niveau.id
+    const epreuves = await withDB(async (db) => {
+      const where: Record<string, unknown> = { isPublished: true }
+      if (isTypeEpreuve(typeParam)) where.type = typeParam
+      if (filiereId || niveauNumero) {
+        where.filiereNiveau = {}
+        if (filiereId) (where.filiereNiveau as Record<string, string>).filiereId = filiereId
+        if (niveauNumero) {
+          const niveau = await db.niveau.findFirst({ where: { numero: Number(niveauNumero) } })
+          if (niveau) (where.filiereNiveau as Record<string, number>).niveauId = niveau.id
+        }
       }
-    }
-
-    const epreuves = await prisma.epreuve.findMany({
-      where,
-      include: {
-        filiereNiveau: { include: { filiere: true, niveau: true } },
-        matiere: true,
-      },
-      orderBy: { createdAt: "desc" },
+      return db.epreuve.findMany({
+        where,
+        include: {
+          filiereNiveau: { include: { filiere: true, niveau: true } },
+          matiere: true,
+        },
+        orderBy: { createdAt: "desc" },
+      })
     })
     return NextResponse.json(epreuves)
   } catch {
@@ -55,28 +56,30 @@ export async function GET(req: Request) {
 }
 
 // POST /api/epreuves
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     await requireAdmin()
     const body = await req.json()
     const data = createEpreuveSchema.parse(body)
 
-    const epreuve = await prisma.epreuve.create({
-      data: {
-        titre: data.titre,
-        type: data.type,
-        fichierEpreuve: data.fichierEpreuve,
-        fichierCorrige: data.fichierCorrige ?? null,
-        isGratuit: data.isGratuit,
-        isPublished: data.isPublished ?? true,
-        filiereNiveauId: data.filiereNiveauId,
-        matiereId: data.matiereId,
-      },
-      include: {
-        filiereNiveau: { include: { filiere: true, niveau: true } },
-        matiere: true,
-      },
-    })
+    const epreuve = await withDB((db) =>
+      db.epreuve.create({
+        data: {
+          titre: data.titre,
+          type: data.type,
+          fichierEpreuve: data.fichierEpreuve,
+          fichierCorrige: data.fichierCorrige ?? null,
+          isGratuit: data.isGratuit,
+          isPublished: data.isPublished ?? true,
+          filiereNiveauId: data.filiereNiveauId,
+          matiereId: data.matiereId,
+        },
+        include: {
+          filiereNiveau: { include: { filiere: true, niveau: true } },
+          matiere: true,
+        },
+      })
+    )
     return NextResponse.json(epreuve)
   } catch (e) {
     if (e instanceof z.ZodError) {

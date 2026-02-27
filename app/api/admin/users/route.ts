@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { withDB } from "@/lib/db"
 import { requireAdmin } from "@/lib/auth/helpers"
 import bcrypt from "bcryptjs"
 import { z } from "zod"
@@ -21,7 +21,8 @@ export async function GET() {
   }
 
   try {
-    const users = await prisma.user.findMany({
+    const users = await withDB((db) =>
+      db.user.findMany({
       select: {
         id: true,
         email: true,
@@ -32,6 +33,7 @@ export async function GET() {
       },
       orderBy: { createdAt: "desc" },
     })
+    )
     return NextResponse.json(users)
   } catch {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 })
@@ -53,7 +55,8 @@ export async function POST(req: Request) {
     const email = data.email.trim().toLowerCase()
     const passwordHash = await bcrypt.hash(data.password, 10)
 
-    const user = await prisma.user.create({
+    const user = await withDB((db) =>
+      db.user.create({
       data: {
         email,
         fullName: data.name ?? null,
@@ -62,6 +65,7 @@ export async function POST(req: Request) {
       },
       select: { id: true, email: true, fullName: true, role: true, createdAt: true },
     })
+    )
     return NextResponse.json(user)
   } catch (e) {
     if (e instanceof z.ZodError) {

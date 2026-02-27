@@ -172,6 +172,7 @@ export default function AdminEpreuvesAddPage() {
         matiereId,
       }
 
+      // Enregistrement en base uniquement après les uploads Cloudinary (évite timeout Prisma/Neon)
       const createRes = await fetch("/api/epreuves", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

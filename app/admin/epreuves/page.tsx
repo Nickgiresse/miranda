@@ -1,22 +1,24 @@
 import Link from "next/link"
-import { prisma } from "@/lib/prisma"
+import { withDB } from "@/lib/db"
 import { PlusCircle, Pencil, Check, X } from "lucide-react"
 import { togglePublishEpreuve } from "@/app/admin/epreuves/actions"
 import { DeleteEpreuveButton } from "@/app/admin/epreuves/DeleteEpreuveButton"
 
 export default async function AdminEpreuvesPage() {
-  const epreuves = await prisma.epreuve.findMany({
-    orderBy: { createdAt: "desc" },
-    include: {
-      filiereNiveau: {
-        include: {
-          filiere: { select: { code: true, couleur: true } },
-          niveau: { select: { numero: true, label: true } },
+  const epreuves = await withDB((db) =>
+    db.epreuve.findMany({
+      orderBy: { createdAt: "desc" },
+      include: {
+        filiereNiveau: {
+          include: {
+            filiere: { select: { code: true, couleur: true } },
+            niveau: { select: { numero: true, label: true } },
+          },
         },
+        matiere: { select: { nom: true } },
       },
-      matiere: { select: { nom: true } },
-    },
-  })
+    })
+  )
 
   const typeLabels: Record<string, string> = {
     CONCOURS: "Concours",
@@ -26,20 +28,18 @@ export default async function AdminEpreuvesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-6xl">
       {/* En-tête + bouton Ajouter */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-            Épreuves
-          </h1>
-          <p className="text-muted-foreground mt-1">
+          <h1 className="text-2xl font-bold text-slate-900">Épreuves</h1>
+          <p className="text-slate-400 text-sm mt-1">
             Liste de toutes les épreuves.
           </p>
         </div>
         <Link
           href="/admin/epreuves/add"
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors w-fit"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-all duration-200 w-fit"
         >
           <PlusCircle className="h-5 w-5" />
           Ajouter une épreuve
@@ -47,13 +47,13 @@ export default async function AdminEpreuvesPage() {
       </div>
 
       {/* Tableau */}
-      <div className="rounded-xl border border-border overflow-hidden bg-card">
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         {epreuves.length === 0 ? (
           <div className="p-12 text-center">
-            <p className="text-muted-foreground mb-4">Aucune épreuve pour le moment.</p>
+            <p className="text-slate-400 mb-4">Aucune épreuve pour le moment.</p>
             <Link
               href="/admin/epreuves/add"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-all duration-200"
             >
               <PlusCircle className="h-5 w-5" />
               Ajouter une épreuve
@@ -63,70 +63,90 @@ export default async function AdminEpreuvesPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-border bg-muted/50">
-                  <th className="text-left p-3 font-medium text-foreground">Titre</th>
-                  <th className="text-left p-3 font-medium text-foreground">Filière</th>
-                  <th className="text-left p-3 font-medium text-foreground">Niveau</th>
-                  <th className="text-left p-3 font-medium text-foreground">Matière</th>
-                  <th className="text-left p-3 font-medium text-foreground">Type</th>
-                  <th className="text-left p-3 font-medium text-foreground">Accès</th>
-                  <th className="text-left p-3 font-medium text-foreground">Corrigé</th>
-                  <th className="text-right p-3 font-medium text-foreground">Actions</th>
+                <tr className="border-b border-slate-100">
+                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Titre
+                  </th>
+                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Filière
+                  </th>
+                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Niveau
+                  </th>
+                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Matière
+                  </th>
+                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Type
+                  </th>
+                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Accès
+                  </th>
+                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Corrigé
+                  </th>
+                  <th className="text-right px-5 py-3.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-50">
                 {epreuves.map((ep) => (
-                  <tr key={ep.id} className="border-b border-border last:border-0 hover:bg-muted/30">
-                    <td className="p-3 text-foreground font-medium max-w-[200px] truncate" title={ep.titre}>
+                  <tr
+                    key={ep.id}
+                    className="hover:bg-slate-50 transition-colors duration-150"
+                  >
+                    <td
+                      className="px-5 py-4 text-slate-900 font-medium max-w-[200px] truncate"
+                      title={ep.titre}
+                    >
                       {ep.titre}
                     </td>
-                    <td className="p-3">
+                    <td className="px-5 py-4">
                       <span
-                        className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium border"
+                        className="inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-medium"
                         style={{
-                          backgroundColor: `${ep.filiereNiveau.filiere.couleur}20`,
-                          borderColor: ep.filiereNiveau.filiere.couleur,
+                          backgroundColor: `${ep.filiereNiveau.filiere.couleur}18`,
                           color: ep.filiereNiveau.filiere.couleur,
                         }}
                       >
                         {ep.filiereNiveau.filiere.code}
                       </span>
                     </td>
-                    <td className="p-3 text-muted-foreground">
+                    <td className="px-5 py-4 text-slate-500">
                       {ep.filiereNiveau.niveau.label}
                     </td>
-                    <td className="p-3 text-muted-foreground">
-                      {ep.matiere.nom}
-                    </td>
-                    <td className="p-3 text-muted-foreground">
+                    <td className="px-5 py-4 text-slate-500">{ep.matiere.nom}</td>
+                    <td className="px-5 py-4 text-slate-500">
                       {typeLabels[ep.type] ?? ep.type}
                     </td>
-                    <td className="p-3">
+                    <td className="px-5 py-4">
                       <span
-                        className={ep.isGratuit
-                          ? "text-green-600 dark:text-green-400 font-medium"
-                          : "text-muted-foreground"
+                        className={
+                          ep.isGratuit
+                            ? "text-slate-700 font-medium"
+                            : "text-slate-500"
                         }
                       >
                         {ep.isGratuit ? "Gratuit" : "Payant"}
                       </span>
                     </td>
-                    <td className="p-3">
+                    <td className="px-5 py-4">
                       {ep.fichierCorrige ? (
-                        <span className="inline-flex items-center gap-1 text-green-600 dark:text-green-400" title="Corrigé disponible">
+                        <span className="inline-flex items-center gap-1 text-slate-600" title="Corrigé disponible">
                           <Check className="h-4 w-4" />
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 text-muted-foreground" title="Pas de corrigé">
+                        <span className="inline-flex items-center gap-1 text-slate-400" title="Pas de corrigé">
                           <X className="h-4 w-4" />
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-5 py-4">
                       <div className="flex items-center gap-3 justify-end">
                         <Link
                           href={`/admin/epreuves/${ep.id}/edit`}
-                          className="text-blue-600 hover:text-blue-800"
+                          className="text-slate-400 hover:text-blue-600 transition-colors duration-200"
                           title="Modifier"
                         >
                           <Pencil className="w-4 h-4" />
@@ -138,11 +158,7 @@ export default async function AdminEpreuvesPage() {
                           <button
                             type="submit"
                             title={ep.isPublished ? "Dépublier" : "Publier"}
-                            className={`text-xs px-2 py-1 rounded-full font-medium ${
-                              ep.isPublished
-                                ? "bg-green-100 text-green-700 hover:bg-green-200"
-                                : "bg-gray-100 text-gray-500 hover:bg-gray-200"
-                            }`}
+                            className="text-xs px-2.5 py-1 rounded-lg font-medium bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all duration-200"
                           >
                             {ep.isPublished ? "Publié" : "Brouillon"}
                           </button>

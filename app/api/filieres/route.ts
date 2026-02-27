@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { withDB } from "@/lib/db"
 import { requireSuperAdmin } from "@/lib/auth/helpers"
 import { z } from "zod"
 
@@ -14,7 +14,8 @@ const createFiliereSchema = z.object({
 // GET /api/filieres
 export async function GET() {
   try {
-    const filieres = await prisma.filiere.findMany({
+    const filieres = await withDB((db) =>
+      db.filiere.findMany({
       where: { isActive: true },
       include: {
         filiereNiveaux: { include: { niveau: true } },
@@ -22,6 +23,7 @@ export async function GET() {
       },
       orderBy: { code: "asc" },
     })
+    )
     return NextResponse.json(filieres)
   } catch (e) {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 })
@@ -35,7 +37,8 @@ export async function POST(req: Request) {
     const body = await req.json()
     const data = createFiliereSchema.parse(body)
 
-    const filiere = await prisma.filiere.create({
+    const filiere = await withDB((db) =>
+      db.filiere.create({
       data: {
         nom: data.nom,
         code: data.code.toUpperCase(),
@@ -44,6 +47,7 @@ export async function POST(req: Request) {
         isActive: data.isActive,
       },
     })
+    )
     return NextResponse.json(filiere)
   } catch (e) {
     if (e instanceof z.ZodError) {

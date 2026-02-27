@@ -1,164 +1,204 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
-import { cn } from "@/lib/utils"
-import { ArrowRight, Github, Lock, Mail, User } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Lock, Mail, User, Loader2, XCircle, ChevronRight } from "lucide-react"
+import Logo from "@/components/Logo"
 import { useSearchParams } from "next/navigation"
 import { registerAction } from "@/app/auth/actions"
-import { toast } from "@/components/ui/Toast"
 
 export default function RegisterPage() {
+  const router = useRouter()
   const searchParams = useSearchParams()
   const next = searchParams.get("next") || ""
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const [pending, setPending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setError(null)
+    if (password !== confirmPassword) {
+      setError("Les deux mots de passe ne correspondent pas.")
+      return
+    }
+    if (password.length < 6) {
+      setError("Le mot de passe doit contenir au moins 6 caractères.")
+      return
+    }
+    setPending(true)
+    const form = e.currentTarget
+    const formData = new FormData(form)
+    formData.set("password", password)
+    try {
+      await registerAction(formData)
+      router.push(next || "/")
+      router.refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Une erreur est survenue.")
+    } finally {
+      setPending(false)
+    }
+  }
 
   return (
-    <div className="relative min-h-[calc(100vh-5rem)]">
-      {/* Background */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-muted/40" />
-        <div className="absolute -top-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
-        <div className="absolute bottom-0 left-0 h-64 w-64 rounded-full bg-foreground/5 blur-3xl" />
-      </div>
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <Logo href="/" width={130} height={44} className="mb-8" />
+          <h1 className="text-2xl font-bold text-slate-900">
+            Créer un compte
+          </h1>
+          <p className="text-slate-500 text-sm mt-2">
+            Rejoignez Miranda et accédez aux épreuves
+          </p>
+        </div>
 
-      <div className="container mx-auto px-4 py-10 sm:py-16">
-        <div className="mx-auto grid w-full max-w-5xl grid-cols-1 overflow-hidden rounded-2xl  bg-background/60 backdrop-blur-md shadow-xl lg:grid-cols-2">
-          {/* Left panel (inspiration Resend) */}
-          <div className="relative hidden flex-col justify-between p-10 lg:flex">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent" />
+        {/* Card formulaire */}
+        <div className="bg-white rounded-2xl shadow-sm p-8">
+          {error && (
+            <div className="flex items-center gap-2.5 bg-red-50 text-red-600 rounded-xl px-4 py-3 text-sm mb-6">
+              <XCircle className="w-4 h-4 flex-shrink-0" />
+              {error}
+            </div>
+          )}
 
-            <div className="relative">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-foreground/10">
-                  <img src="/logo.png" alt="Miranda" className="h-7 w-7" />
-                </div>
-                <div>
-                  <p className="text-lg font-bold">Miranda</p>
-                  <p className="text-sm text-muted-foreground">Bibliothèque d’épreuves & concours</p>
-                </div>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <input type="hidden" name="next" value={next} />
+
+            {/* Nom complet */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                Nom complet
+              </label>
+              <div className="relative">
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  name="fullName"
+                  placeholder="Jean Dupont"
+                  disabled={pending}
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl text-sm ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 placeholder:text-slate-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                />
               </div>
+            </div>
 
-              <div className="mt-10">
-                <h1 className="text-3xl font-extrabold tracking-tight">Créer un compte.</h1>
-                <p className="mt-3 text-muted-foreground">
-                  Rejoignez Miranda pour accéder aux ressources, concours et épreuves de votre niveau.
+            {/* Email */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                Adresse email
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="vous@exemple.cm"
+                  required
+                  disabled={pending}
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl text-sm ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 placeholder:text-slate-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+              </div>
+            </div>
+
+            {/* Mot de passe */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                Mot de passe
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="••••••••"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={pending}
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl text-sm ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 placeholder:text-slate-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+              </div>
+              <div className="mt-2 space-y-1">
+                <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all duration-300 ${
+                      password.length === 0
+                        ? "w-0"
+                        : password.length < 6
+                          ? "w-1/3 bg-red-400"
+                          : password.length < 10
+                            ? "w-2/3 bg-amber-400"
+                            : "w-full bg-emerald-400"
+                    }`}
+                  />
+                </div>
+                <p className="text-xs text-slate-400">
+                  {password.length === 0
+                    ? ""
+                    : password.length < 6
+                      ? "Trop court"
+                      : password.length < 10
+                        ? "Acceptable"
+                        : "Fort ✓"}
                 </p>
               </div>
             </div>
 
-            <div className="relative mt-12 rounded-2xl  bg-primary/20 p-6">
-              <p className="text-sm font-bold">Astuce</p>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Gardez vos informations secrete pour plus de securiter et une utilisation meilleures.
-              </p>
+            {/* Confirmer mot de passe */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                Confirmer le mot de passe
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={pending}
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl text-sm ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 placeholder:text-slate-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+              </div>
             </div>
-          </div>
 
-          {/* Right panel (form) */}
-          <div className="p-6 sm:p-10">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold">Créer un compte</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Déjà un compte ?{" "}
-                <Link href="/login" className="font-medium text-primary hover:underline">
-                  Se connecter
-                </Link>
-              </p>
-            </div>
-
-            {/* <div className="grid gap-3">
-              <button
-                type="button"
-                className={cn(
-                  "w-full rounded-xl border bg-background px-4 py-2.5 text-sm font-medium transition-colors",
-                  "hover:bg-muted"
-                )}
-                onClick={() => toast.info("Inscription Google (UI) : non configurée")}
-              >
-                Continuer avec Google
-              </button>
-              <button
-                type="button"
-                className={cn(
-                  "flex w-full items-center justify-center gap-2 rounded-xl border bg-background px-4 py-2.5 text-sm font-medium transition-colors",
-                  "hover:bg-muted"
-                )}
-                onClick={() => toast.info("Inscription GitHub (UI) : non configurée")}
-              >
-                <Github className="h-4 w-4" />
-                Continuer avec GitHub
-              </button>
-            </div> */}
-
-            {/* <div className="my-6 flex items-center gap-3">
-              <div className="h-px flex-1 bg-border" />
-              <span className="text-xs text-muted-foreground">ou</span>
-              <div className="h-px flex-1 bg-border" />
-            </div> */}
-
-            <form action={registerAction} className="space-y-4">
-              <input type="hidden" name="next" value={next} />
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Nom complet</label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <input
-                    name="fullName"
-                    type="text"
-                    placeholder="Votre nom"
-                    className="w-full rounded-xl bg-foreground/5  py-2.5 pl-10 pr-3 text-sm outline-none focus:ring-2 focus:ring-primary/30"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Email</label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <input
-                    name="email"
-                    type="email"
-                    required
-                    placeholder="exemple@email.com"
-                    className="w-full rounded-xl  bg-foreground/5 py-2.5 pl-10 pr-3 text-sm outline-none focus:ring-2 focus:ring-primary/30"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Mot de passe</label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <input
-                    name="password"
-                    type="password"
-                    required
-                    placeholder="••••••••"
-                    className="w-full rounded-xl  bg-foreground/5  py-2.5 pl-10 pr-3 text-sm outline-none focus:ring-2 focus:ring-primary/30"
-                  />
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                className={cn(
-                  "w-full rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors",
-                  "bg-foreground text-primary hover:bg-foreground/90"
-                )}
-              >
-                <span className="inline-flex items-center justify-center gap-2">
+            {/* Bouton */}
+            <button
+              type="submit"
+              disabled={pending}
+              className="w-full py-3 bg-slate-900 hover:bg-slate-700 text-white rounded-xl font-semibold text-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 flex items-center justify-center gap-2"
+            >
+              {pending ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Création du compte...
+                </>
+              ) : (
+                <>
                   Créer un compte
-                  <ArrowRight className="h-4 w-4" />
-                </span>
-              </button>
-            </form>
-
-            <p className="mt-6 text-xs text-muted-foreground">
-              En créant un compte, vous acceptez nos conditions, l’utilisation acceptable et notre politique de confidentialité.
-            </p>
-          </div>
+                  <ChevronRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
+          </form>
         </div>
+
+        {/* Lien connexion */}
+        <p className="text-center text-sm text-slate-500 mt-6">
+          Déjà un compte ?{" "}
+          <Link
+            href="/login"
+            className="font-semibold text-slate-900 hover:text-blue-600 transition-colors duration-200"
+          >
+            Se connecter
+          </Link>
+        </p>
       </div>
     </div>
   )
 }
-

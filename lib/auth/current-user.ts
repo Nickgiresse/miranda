@@ -1,6 +1,6 @@
 import "server-only"
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { withDB } from "@/lib/db"
 
 /** Utilisateur courant depuis la session NextAuth (pour usage serveur, ex. layout alternatif). */
 export async function getCurrentUser() {
@@ -8,10 +8,12 @@ export async function getCurrentUser() {
     const session = await auth()
     if (!session?.user?.id) return null
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { id: true, email: true, fullName: true, role: true },
-    })
+    const user = await withDB((db) =>
+      db.user.findUnique({
+        where: { id: session.user.id },
+        select: { id: true, email: true, fullName: true, role: true },
+      })
+    )
     if (!user) return null
 
     return {

@@ -1,13 +1,14 @@
 // Miranda - Prisma Schema
 // Next.js 15+ / PostgreSQL
 
-// URL de connexion : prisma.config.ts (Migrate) + adapter dans lib/prisma.ts (runtime)
+// Prisma 7 : pas de url/directUrl ici. Connexion CLI dans prisma.config.ts, runtime dans lib/prisma.ts
 datasource db {
   provider = "postgresql"
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 // --------------------------------------

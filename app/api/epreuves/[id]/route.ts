@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { withDB } from "@/lib/db"
 import { requireAdmin } from "@/lib/auth/helpers"
 import { z } from "zod"
 
@@ -21,13 +21,15 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const epreuve = await prisma.epreuve.findUnique({
-      where: { id },
-      include: {
-        filiereNiveau: { include: { filiere: true, niveau: true } },
-        matiere: true,
-      },
-    })
+    const epreuve = await withDB((db) =>
+      db.epreuve.findUnique({
+        where: { id },
+        include: {
+          filiereNiveau: { include: { filiere: true, niveau: true } },
+          matiere: true,
+        },
+      })
+    )
     if (!epreuve) return NextResponse.json({ error: "Épreuve introuvable" }, { status: 404 })
     return NextResponse.json(epreuve)
   } catch {
@@ -46,7 +48,8 @@ export async function PATCH(
     const body = await req.json()
     const data = updateEpreuveSchema.parse(body)
 
-    const epreuve = await prisma.epreuve.update({
+    const epreuve = await withDB((db) =>
+      db.epreuve.update({
       where: { id },
       data: {
         ...(data.titre != null && { titre: data.titre }),
@@ -63,6 +66,7 @@ export async function PATCH(
         matiere: true,
       },
     })
+    )
     return NextResponse.json(epreuve)
   } catch (e) {
     if (e instanceof z.ZodError) {
@@ -81,7 +85,7 @@ export async function DELETE(
   try {
     await requireAdmin()
     const { id } = await params
-    await prisma.epreuve.delete({ where: { id } })
+    await withDB((db) => db.epreuve.delete({ where: { id } }))
     return NextResponse.json({ success: true })
   } catch (e) {
     if (e instanceof Response) return e

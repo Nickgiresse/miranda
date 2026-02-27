@@ -1,78 +1,88 @@
-import { prisma } from "@/lib/prisma"
+import { withDB } from "@/lib/db"
 import { BookMarked } from "lucide-react"
 import { AddMatiereForm } from "./add-matiere-form"
 import { EditMatiereInline } from "./edit-matiere-inline"
 import { DeleteMatiereButton } from "./delete-matiere-button"
 
 export default async function AdminMatieresPage() {
-  const [matieres, filieres] = await Promise.all([
-    prisma.matiere.findMany({
-      include: {
-        filiere: { select: { nom: true, code: true, couleur: true } },
-        _count: { select: { epreuves: true } },
-      },
-      orderBy: [{ filiereId: "asc" }, { nom: "asc" }],
-    }),
-    prisma.filiere.findMany({
-      where: { isActive: true },
-      orderBy: { code: "asc" },
-      select: { id: true, nom: true, code: true, couleur: true },
-    }),
-  ])
+  const [matieres, filieres] = await withDB((db) =>
+    Promise.all([
+      db.matiere.findMany({
+        include: {
+          filiere: { select: { nom: true, code: true, couleur: true } },
+          _count: { select: { epreuves: true } },
+        },
+        orderBy: [{ filiereId: "asc" }, { nom: "asc" }],
+      }),
+      db.filiere.findMany({
+        where: { isActive: true },
+        orderBy: { code: "asc" },
+        select: { id: true, nom: true, code: true, couleur: true },
+      }),
+    ])
+  )
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-6xl">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center gap-2">
-          <BookMarked className="h-8 w-8" />
+        <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+          <BookMarked className="h-7 w-7 text-slate-600" />
           Matières
         </h1>
-        <p className="text-muted-foreground mt-1">
+        <p className="text-slate-400 text-sm mt-1">
           Gérer les matières par filière.
         </p>
       </div>
 
       <AddMatiereForm filieres={filieres} />
 
-      <div className="rounded-xl border border-border overflow-hidden bg-card">
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         {matieres.length === 0 ? (
-          <div className="p-12 text-center text-muted-foreground">
+          <div className="p-12 text-center text-slate-400">
             Aucune matière. Ajoutez-en une ci-dessus.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-border bg-muted/50">
-                  <th className="text-left p-3 font-medium text-foreground">Nom</th>
-                  <th className="text-left p-3 font-medium text-foreground">Filière</th>
-                  <th className="text-left p-3 font-medium text-foreground">Nb épreuves</th>
-                  <th className="text-right p-3 font-medium text-foreground">Actions</th>
+                <tr className="border-b border-slate-100">
+                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Nom
+                  </th>
+                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Filière
+                  </th>
+                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Nb épreuves
+                  </th>
+                  <th className="text-right px-5 py-3.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-50">
                 {matieres.map((m) => (
                   <tr
                     key={m.id}
-                    className="border-b border-border last:border-0 hover:bg-muted/30"
+                    className="hover:bg-slate-50 transition-colors duration-150"
                   >
-                    <td className="p-3">
+                    <td className="px-5 py-4">
                       <EditMatiereInline id={m.id} initialNom={m.nom} />
                     </td>
-                    <td className="p-3">
+                    <td className="px-5 py-4">
                       <span
-                        className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium text-white shadow-sm"
+                        className="inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-medium text-white"
                         style={{
-                          backgroundColor: m.filiere.couleur || "#6b7280",
+                          backgroundColor: m.filiere.couleur || "#64748b",
                         }}
                       >
                         {m.filiere.nom} ({m.filiere.code})
                       </span>
                     </td>
-                    <td className="p-3 text-muted-foreground">
+                    <td className="px-5 py-4 text-slate-500">
                       {m._count.epreuves}
                     </td>
-                    <td className="p-3 text-right">
+                    <td className="px-5 py-4 text-right">
                       <DeleteMatiereButton
                         matiereId={m.id}
                         matiereNom={m.nom}

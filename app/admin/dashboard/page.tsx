@@ -1,192 +1,194 @@
 import Link from "next/link"
-import { prisma } from "@/lib/prisma"
+import { withDB } from "@/lib/db"
+import { requireAdmin } from "@/lib/auth/helpers"
 import {
   BookOpen,
   Users,
-  FileQuestion,
+  AlertCircle,
   PlusCircle,
   List,
   Settings,
-  Pencil,
 } from "lucide-react"
-import { cn } from "@/lib/utils"
 
 export default async function AdminDashboardPage() {
-  const [
-    totalEpreuvesPubliees,
-    totalUsers,
-    totalSansCorrige,
-    epreuvesSansCorrige,
-  ] = await Promise.all([
-    prisma.epreuve.count({ where: { isPublished: true } }),
-    prisma.user.count({ where: { role: "USER" } }),
-    prisma.epreuve.count({ where: { fichierCorrige: null } }),
-    prisma.epreuve.findMany({
-      where: { fichierCorrige: null },
-      take: 5,
-      include: {
-        filiereNiveau: {
-          include: { filiere: true, niveau: true },
+  await requireAdmin()
+
+  const [totalEpreuves, totalUsers, epreuvesSansCorrige] = await withDB((db) =>
+    Promise.all([
+      db.epreuve.count({ where: { isPublished: true } }),
+      db.user.count({ where: { role: "USER" } }),
+      db.epreuve.findMany({
+        where: { isPublished: true, fichierCorrige: null },
+        select: {
+          id: true,
+          titre: true,
+          type: true,
+          filiereNiveau: {
+            include: {
+              filiere: { select: { code: true, couleur: true } },
+              niveau: { select: { numero: true, label: true } },
+            },
+          },
         },
-      },
-      orderBy: { createdAt: "desc" },
-    }),
-  ])
+        take: 5,
+      }),
+    ])
+  )
 
   const stats = [
     {
       label: "Épreuves publiées",
-      value: totalEpreuvesPubliees,
+      value: totalEpreuves,
       icon: BookOpen,
-      bgColor: "bg-blue-100 dark:bg-blue-900/30",
-      textColor: "text-blue-700 dark:text-blue-400",
-      iconColor: "text-blue-600 dark:text-blue-300",
+      sub: "épreuves en ligne",
     },
     {
-      label: "Utilisateurs (USER)",
+      label: "Utilisateurs",
       value: totalUsers,
       icon: Users,
-      bgColor: "bg-green-100 dark:bg-green-900/30",
-      textColor: "text-green-700 dark:text-green-400",
-      iconColor: "text-green-600 dark:text-green-300",
+      sub: "comptes inscrits",
     },
     {
-      label: "Épreuves sans corrigé",
-      value: totalSansCorrige,
-      icon: FileQuestion,
-      bgColor: "bg-amber-100 dark:bg-amber-900/30",
-      textColor: "text-amber-700 dark:text-amber-400",
-      iconColor: "text-amber-600 dark:text-amber-300",
+      label: "Sans corrigé",
+      value: epreuvesSansCorrige.length,
+      icon: AlertCircle,
+      sub: "en attente",
     },
   ]
 
-  const typeLabels: Record<string, string> = {
-    CONCOURS: "Concours",
-    CC: "Contrôle continu",
-    SN: "Session normale",
-    EPREUVE_SIMPLE: "Épreuve simple",
-  }
-
   return (
-    <div className="space-y-8">
-      {/* Titre */}
+    <div className="space-y-8 max-w-6xl">
+      {/* Header */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-          Tableau de bord
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          Vue d&apos;ensemble et actions rapides.
+        <h1 className="text-2xl font-bold text-slate-900">Tableau de bord</h1>
+        <p className="text-slate-400 text-sm mt-1">
+          Bienvenue sur l&apos;interface Miranda
         </p>
       </div>
 
-      {/* 3 cartes de stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {stats.map(({ label, value, icon: Icon, bgColor, textColor, iconColor }) => (
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        {stats.map(({ label, value, icon: Icon, sub }) => (
           <div
             key={label}
-            className={cn(
-              "rounded-xl border border-border p-6",
-              "bg-card"
-            )}
+            className="bg-white rounded-2xl p-6 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-default"
           >
-            <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center mb-3", bgColor, iconColor)}>
-              <Icon className="h-5 w-5" />
+            <div className="flex items-start justify-between mb-4">
+              <div className="bg-slate-100 rounded-xl p-2.5">
+                <Icon className="w-5 h-5 text-slate-600" />
+              </div>
             </div>
-            <p className="text-2xl font-bold text-foreground">{value}</p>
-            <p className={cn("text-sm mt-1", textColor)}>{label}</p>
+            <p className="text-3xl font-bold text-slate-900 mb-1">{value}</p>
+            <p className="text-sm text-slate-400">{label}</p>
+            <p className="text-xs text-slate-300 mt-0.5">{sub}</p>
           </div>
         ))}
       </div>
 
       {/* Actions rapides */}
       <div>
-        <h2 className="text-lg font-semibold text-foreground mb-3">Actions rapides</h2>
-        <div className="flex flex-wrap gap-3">
-          <Link
-            href="/admin/epreuves/add"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors"
-          >
-            <PlusCircle className="h-5 w-5" />
-            Ajouter une épreuve
-          </Link>
-          <Link
-            href="/admin/epreuves"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white dark:bg-card border border-border font-medium text-foreground hover:bg-muted transition-colors"
-          >
-            <List className="h-5 w-5" />
-            Voir les épreuves
-          </Link>
-          <Link
-            href="/admin/settings"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white dark:bg-card border border-border font-medium text-foreground hover:bg-muted transition-colors"
-          >
-            <Settings className="h-5 w-5" />
-            Paramètres
-          </Link>
+        <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">
+          Actions rapides
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[
+            {
+              href: "/admin/epreuves/add",
+              icon: PlusCircle,
+              label: "Ajouter une épreuve",
+              sub: "Publier un nouveau PDF",
+            },
+            {
+              href: "/admin/epreuves",
+              icon: List,
+              label: "Toutes les épreuves",
+              sub: "Gérer le contenu",
+            },
+            {
+              href: "/admin/settings",
+              icon: Settings,
+              label: "Paramètres",
+              sub: "Prix, contact...",
+            },
+          ].map(({ href, icon: Icon, label, sub }) => (
+            <Link
+              key={href}
+              href={href}
+              className="group bg-white rounded-2xl p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 flex items-center gap-4"
+            >
+              <div className="bg-slate-100 rounded-xl p-2.5 group-hover:bg-slate-900 transition-all duration-200">
+                <Icon className="w-5 h-5 text-slate-600 group-hover:text-white transition-colors duration-200" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-slate-900">{label}</p>
+                <p className="text-xs text-slate-400">{sub}</p>
+              </div>
+            </Link>
+          ))}
         </div>
       </div>
 
       {/* Tableau épreuves sans corrigé */}
-      <div>
-        <h2 className="text-lg font-semibold text-foreground mb-3">
-          Épreuves sans corrigé (5 dernières)
-        </h2>
-        <div className="rounded-xl border border-border overflow-hidden bg-card">
-          {epreuvesSansCorrige.length === 0 ? (
-            <p className="p-6 text-muted-foreground text-sm">
-              Aucune épreuve sans corrigé.
-            </p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-muted/50">
-                    <th className="text-left p-3 font-medium text-foreground">Titre</th>
-                    <th className="text-left p-3 font-medium text-foreground">Filière</th>
-                    <th className="text-left p-3 font-medium text-foreground">Niveau</th>
-                    <th className="text-left p-3 font-medium text-foreground">Type</th>
-                    <th className="text-right p-3 font-medium text-foreground">Action</th>
+      {epreuvesSansCorrige.length > 0 && (
+        <div>
+          <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-4">
+            Épreuves sans corrigé
+          </h2>
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <div className="overflow-x-auto min-w-0">
+              <table className="w-full text-sm min-w-[500px]">
+              <thead>
+                <tr className="border-b border-slate-100">
+                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Titre
+                  </th>
+                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Filière
+                  </th>
+                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Type
+                  </th>
+                  <th className="px-5 py-3.5"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {epreuvesSansCorrige.map((e) => (
+                  <tr
+                    key={e.id}
+                    className="hover:bg-slate-50 transition-colors duration-150 group"
+                  >
+                    <td className="px-5 py-4 font-medium text-slate-900">
+                      {e.titre}
+                    </td>
+                    <td className="px-5 py-4">
+                      <span
+                        className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold text-white"
+                        style={{
+                          backgroundColor: e.filiereNiveau.filiere.couleur,
+                        }}
+                      >
+                        {e.filiereNiveau.filiere.code}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 text-slate-500 text-xs">
+                      {e.type}
+                    </td>
+                    <td className="px-5 py-4">
+                      <Link
+                        href={`/admin/epreuves/${e.id}/edit`}
+                        className="text-xs font-medium text-slate-400 group-hover:text-blue-600 transition-colors duration-200"
+                      >
+                        Ajouter corrigé →
+                      </Link>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {epreuvesSansCorrige.map((ep) => (
-                    <tr key={ep.id} className="border-b border-border last:border-0">
-                      <td className="p-3 text-foreground font-medium">{ep.titre}</td>
-                      <td className="p-3">
-                        <span
-                          className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium border"
-                          style={{
-                            backgroundColor: `${ep.filiereNiveau.filiere.couleur}20`,
-                            borderColor: ep.filiereNiveau.filiere.couleur,
-                            color: ep.filiereNiveau.filiere.couleur,
-                          }}
-                        >
-                          {ep.filiereNiveau.filiere.code}
-                        </span>
-                      </td>
-                      <td className="p-3 text-muted-foreground">
-                        {ep.filiereNiveau.niveau.label}
-                      </td>
-                      <td className="p-3 text-muted-foreground">
-                        {typeLabels[ep.type] ?? ep.type}
-                      </td>
-                      <td className="p-3 text-right">
-                        <Link
-                          href={`/admin/epreuves/${ep.id}/edit`}
-                          className="inline-flex items-center gap-1 text-primary font-medium hover:underline"
-                        >
-                          <Pencil className="h-4 w-4" />
-                          Ajouter corrigé
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
+                ))}
+              </tbody>
               </table>
             </div>
-          )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

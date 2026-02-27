@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { withDB } from "@/lib/db"
 
 export type Role = "USER" | "ADMIN" | "SUPER_ADMIN"
 
@@ -48,12 +48,14 @@ export async function requireSuperAdmin() {
 /** Vérifie si l'utilisateur a un abonnement actif (dateFin >= aujourd'hui, isActive) */
 export async function hasActiveAbonnement(userId: string): Promise<boolean> {
   const now = new Date()
-  const abo = await prisma.abonnement.findFirst({
-    where: {
-      userId,
-      isActive: true,
-      dateFin: { gte: now },
-    },
-  })
+  const abo = await withDB((db) =>
+    db.abonnement.findFirst({
+      where: {
+        userId,
+        isActive: true,
+        dateFin: { gte: now },
+      },
+    })
+  )
   return !!abo
 }

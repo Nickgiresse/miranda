@@ -44,11 +44,7 @@ export function UserActions({
           }
         }}
         disabled={loading}
-        className={`text-xs px-3 py-1.5 rounded-full font-medium transition disabled:opacity-50 ${
-          isActive
-            ? "bg-red-100 text-red-700 hover:bg-red-200"
-            : "bg-green-100 text-green-700 hover:bg-green-200"
-        }`}
+        className="text-xs px-3 py-1.5 rounded-lg font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all duration-200 disabled:opacity-50"
       >
         {loading ? "..." : isActive ? "Désactiver" : "Activer"}
       </button>
@@ -56,7 +52,7 @@ export function UserActions({
       <button
         type="button"
         onClick={() => setConfirming(true)}
-        className="text-xs px-3 py-1.5 rounded-full bg-gray-100 text-gray-600 hover:bg-red-100 hover:text-red-600 transition"
+        className="text-xs px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200"
       >
         Supprimer
       </button>

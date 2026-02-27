@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma"
+import { withDB } from "@/lib/db"
 import { Users } from "lucide-react"
 import { UserActions } from "./user-actions"
 
@@ -12,48 +12,60 @@ function formatDate(date: Date | null): string {
 }
 
 export default async function AdminUtilisateursPage() {
-  const users = await prisma.user.findMany({
-    where: { role: "USER" },
-    select: {
-      id: true,
-      fullName: true,
-      email: true,
-      isSubscriptionActive: true,
-      subscriptionEndDate: true,
-    },
-    orderBy: { createdAt: "desc" },
-  })
+  const users = await withDB((db) =>
+    db.user.findMany({
+      where: { role: "USER" },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        isSubscriptionActive: true,
+        subscriptionEndDate: true,
+      },
+      orderBy: { createdAt: "desc" },
+    })
+  )
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-6xl">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground flex items-center gap-2">
-          <Users className="h-8 w-8" />
+        <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+          <Users className="h-7 w-7 text-slate-600" />
           Utilisateurs
         </h1>
-        <p className="text-muted-foreground mt-1">
+        <p className="text-slate-400 text-sm mt-1">
           Liste des comptes utilisateurs (rôle USER).
         </p>
       </div>
 
-      <div className="rounded-xl border border-border overflow-hidden bg-card">
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         {users.length === 0 ? (
-          <div className="p-12 text-center text-muted-foreground">
+          <div className="p-12 text-center text-slate-400">
             Aucun utilisateur pour le moment.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-border bg-muted/50">
-                  <th className="text-left p-3 font-medium text-foreground">Nom</th>
-                  <th className="text-left p-3 font-medium text-foreground">Email</th>
-                  <th className="text-left p-3 font-medium text-foreground">Abonnement</th>
-                  <th className="text-left p-3 font-medium text-foreground">Date fin</th>
-                  <th className="text-right p-3 font-medium text-foreground">Actions</th>
+                <tr className="border-b border-slate-100">
+                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Nom
+                  </th>
+                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Email
+                  </th>
+                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Abonnement
+                  </th>
+                  <th className="text-left px-5 py-3.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Date fin
+                  </th>
+                  <th className="text-right px-5 py-3.5 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-slate-50">
                 {users.map((user) => {
                   const abonnementActif =
                     user.isSubscriptionActive === true &&
@@ -62,27 +74,27 @@ export default async function AdminUtilisateursPage() {
                   return (
                     <tr
                       key={user.id}
-                      className="border-b border-border last:border-0 hover:bg-muted/30"
+                      className="hover:bg-slate-50 transition-colors duration-150"
                     >
-                      <td className="p-3 text-foreground font-medium">
+                      <td className="px-5 py-4 font-medium text-slate-900">
                         {user.fullName ?? "—"}
                       </td>
-                      <td className="p-3 text-foreground">{user.email}</td>
-                      <td className="p-3">
+                      <td className="px-5 py-4 text-slate-600">{user.email}</td>
+                      <td className="px-5 py-4">
                         <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          className={`inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-medium ${
                             abonnementActif
-                              ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300"
-                              : "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300"
+                              ? "bg-slate-100 text-slate-700"
+                              : "bg-slate-100 text-slate-500"
                           }`}
                         >
                           {abonnementActif ? "Actif" : "Inactif"}
                         </span>
                       </td>
-                      <td className="p-3 text-muted-foreground">
+                      <td className="px-5 py-4 text-slate-500">
                         {formatDate(user.subscriptionEndDate)}
                       </td>
-                      <td className="p-3 text-right">
+                      <td className="px-5 py-4 text-right">
                         <UserActions
                           userId={user.id}
                           isActive={abonnementActif}

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { withDB } from "@/lib/db"
 import { requireAdmin } from "@/lib/auth/helpers"
 import bcrypt from "bcryptjs"
 import { z } from "zod"
@@ -34,11 +34,13 @@ export async function PATCH(
     if (data.role != null) updateData.role = data.role
     if (data.password) updateData.password = await bcrypt.hash(data.password, 10)
 
-    const user = await prisma.user.update({
+    const user = await withDB((db) =>
+      db.user.update({
       where: { id },
       data: updateData,
       select: { id: true, email: true, fullName: true, role: true, createdAt: true },
     })
+    )
     return NextResponse.json(user)
   } catch (e) {
     if (e instanceof z.ZodError) {
@@ -63,7 +65,7 @@ export async function DELETE(
 
   try {
     const { id } = await params
-    await prisma.user.delete({ where: { id } })
+    await withDB((db) => db.user.delete({ where: { id } }))
     return NextResponse.json({ success: true })
   } catch {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 })

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { withDB } from "@/lib/db"
+import { getWhatsAppAbonnementUrl } from "@/lib/whatsapp"
 
 export async function POST(
   request: NextRequest,
@@ -12,9 +13,11 @@ export async function POST(
 
   const { id } = await params
 
-  const epreuve = await prisma.epreuve.findUnique({
-    where: { id, isPublished: true },
-  })
+  const epreuve = await withDB((db) =>
+    db.epreuve.findUnique({
+      where: { id, isPublished: true },
+    })
+  )
 
   if (!epreuve) {
     return NextResponse.json(
@@ -46,10 +49,12 @@ export async function POST(
     )
   }
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { isSubscriptionActive: true, subscriptionEndDate: true },
-  })
+  const user = await withDB((db) =>
+    db.user.findUnique({
+      where: { id: session.user.id },
+      select: { isSubscriptionActive: true, subscriptionEndDate: true },
+    })
+  )
 
   const abonnementActif =
     user?.isSubscriptionActive === true &&
@@ -59,20 +64,22 @@ export async function POST(
   if (!abonnementActif) {
     return NextResponse.json(
       {
-        error: "Abonnement requis pour accéder à cette épreuve.",
-        redirect: "/abonnement",
+        error: "Un abonnement actif est requis",
+        whatsapp: getWhatsAppAbonnementUrl(),
       },
       { status: 403 }
     )
   }
 
-  await prisma.download.create({
-    data: {
-      userId: session.user.id,
-      epreuveId: id,
-      type: type === "corrige" ? "CORRIGE" : "EPREUVE",
-    },
-  })
+  await withDB((db) =>
+    db.download.create({
+      data: {
+        userId: session.user.id,
+        epreuveId: id,
+        type: type === "corrige" ? "CORRIGE" : "EPREUVE",
+      },
+    })
+  )
 
   return NextResponse.json({ url })
 }

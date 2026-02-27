@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { withDB } from "@/lib/db"
 import { requireAdmin } from "@/lib/auth/helpers"
 import { z } from "zod"
 
@@ -20,12 +20,15 @@ export async function GET() {
   }
 
   try {
-    let settings = await prisma.systemSettings.findFirst()
-    if (!settings) {
-      settings = await prisma.systemSettings.create({
-        data: { id: 1, prixAbonnement: 1000 },
-      })
-    }
+    const settings = await withDB(async (db) => {
+      let s = await db.systemSettings.findFirst()
+      if (!s) {
+        s = await db.systemSettings.create({
+          data: { id: 1, prixAbonnement: 1000 },
+        })
+      }
+      return s
+    })
     return NextResponse.json(settings)
   } catch {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 })
@@ -45,21 +48,22 @@ export async function PATCH(req: Request) {
     const body = await req.json()
     const data = updateSettingsSchema.parse(body)
 
-    let settings = await prisma.systemSettings.findFirst()
-    if (!settings) {
-      settings = await prisma.systemSettings.create({
-        data: { id: 1, prixAbonnement: 1000 },
+    const settings = await withDB(async (db) => {
+      let s = await db.systemSettings.findFirst()
+      if (!s) {
+        s = await db.systemSettings.create({
+          data: { id: 1, prixAbonnement: 1000 },
+        })
+      }
+      return db.systemSettings.update({
+        where: { id: 1 },
+        data: {
+          ...(data.prixAbonnement != null && { prixAbonnement: data.prixAbonnement }),
+          ...(data.contactEmail !== undefined && { contactEmail: data.contactEmail }),
+          ...(data.contactTel !== undefined && { contactTel: data.contactTel }),
+          ...(data.contactAdresse !== undefined && { contactAdresse: data.contactAdresse }),
+        },
       })
-    }
-
-    settings = await prisma.systemSettings.update({
-      where: { id: 1 },
-      data: {
-        ...(data.prixAbonnement != null && { prixAbonnement: data.prixAbonnement }),
-        ...(data.contactEmail !== undefined && { contactEmail: data.contactEmail }),
-        ...(data.contactTel !== undefined && { contactTel: data.contactTel }),
-        ...(data.contactAdresse !== undefined && { contactAdresse: data.contactAdresse }),
-      },
     })
     return NextResponse.json(settings)
   } catch (e) {

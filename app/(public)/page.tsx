@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, BookOpen, CheckCircle, GraduationCap, Users, FolderOpen } from "lucide-react";
+import { getWhatsAppAbonnementUrl } from "@/lib/whatsapp";
 import { motion } from "framer-motion";
 
 const fadeUp = {
@@ -194,9 +195,14 @@ export default function Home() {
                 <span className="text-xl text-muted-foreground">FCFA / an</span>
               </div>
 
-              <Link href="/subscribe" className="block w-full py-1.5 px-4 text-center bg-primary text-white font-bold rounded-[10px] hover:bg-primary/90 transition-colors  bg-foreground/10 border-primary">
-                Je m'abonne maintenant
-              </Link>
+              <a
+                href={getWhatsAppAbonnementUrl()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full py-1.5 px-4 text-center bg-primary text-white font-bold rounded-[10px] hover:bg-primary/90 transition-colors bg-foreground/10 border-primary"
+              >
+                Je m&apos;abonne maintenant
+              </a>
               <ul className="space-y-4 text-left mb-8 p-[5%]">
                 <li className="flex items-center gap-3">
                   <CheckCircle className="h-5 w-5 text-green-500 shrink-0" />

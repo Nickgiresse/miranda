@@ -1,6 +1,6 @@
 "use server"
 
-import { prisma } from "@/lib/prisma"
+import { withDB } from "@/lib/db"
 import { requireAdmin } from "@/lib/auth/helpers"
 import { revalidatePath } from "next/cache"
 
@@ -35,12 +35,12 @@ export async function updateMatiere(id: string, formData: FormData) {
   await requireAdmin()
   const nom = String(formData.get("nom") ?? "").trim()
   if (!nom) throw new Error("Nom requis")
-  await prisma.matiere.update({ where: { id }, data: { nom } })
+  await withDB((db) => db.matiere.update({ where: { id }, data: { nom } }))
   revalidatePath("/admin/matieres")
 }
 
 export async function deleteMatiere(id: string) {
   await requireAdmin()
-  await prisma.matiere.delete({ where: { id } })
+  await withDB((db) => db.matiere.delete({ where: { id } }))
   revalidatePath("/admin/matieres")
 }

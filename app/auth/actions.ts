@@ -2,7 +2,7 @@
 
 import bcrypt from "bcryptjs"
 import { redirect } from "next/navigation"
-import { prisma } from "@/lib/prisma"
+import { withDB } from "@/lib/db"
 import { signIn, signOut } from "@/lib/auth"
 
 function normalizeEmail(email: string) {
@@ -31,15 +31,17 @@ export async function registerAction(formData: FormData) {
   const passwordHash = await bcrypt.hash(password, 10)
 
   try {
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: passwordHash,
-        fullName: name || null,
-        role: "USER",
-      },
-      select: { id: true, role: true },
-    })
+    const user = await withDB((db) =>
+      db.user.create({
+        data: {
+          email,
+          password: passwordHash,
+          fullName: name || null,
+          role: "USER",
+        },
+        select: { id: true, role: true },
+      })
+    )
 
     await signIn("credentials", {
       email,
@@ -74,10 +76,12 @@ export async function loginAction(
   }
 
   try {
-    const user = await prisma.user.findUnique({
-      where: { email },
-      select: { id: true, password: true, role: true },
-    })
+    const user = await withDB((db) =>
+      db.user.findUnique({
+        where: { email },
+        select: { id: true, password: true, role: true },
+      })
+    )
 
     if (!user) {
       return { error: "Identifiants invalides. Veuillez vérifier votre email et mot de passe." }

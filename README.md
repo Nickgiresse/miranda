@@ -16,6 +16,19 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Supabase Storage (PDFs des épreuves)
+
+Les épreuves et corrigés sont stockés dans un bucket Supabase. **Créez le bucket une fois** dans le dashboard :
+
+1. Allez sur [Supabase Dashboard](https://supabase.com/dashboard) → votre projet.
+2. Menu **Storage** (à gauche).
+3. Cliquez **New bucket**.
+4. Nom du bucket : **`miranda-pdfs`** (exactement).
+5. Cochez **Public bucket** pour que les liens « Voir / Télécharger / Corrigé » fonctionnent.
+6. Validez avec **Create bucket**.
+
+Sans ce bucket, les URLs des PDFs renverront « Bucket not found » (404).
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

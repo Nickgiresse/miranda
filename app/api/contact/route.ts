@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { z } from "zod"
 
 const contactSchema = z.object({
+  nom: z.string().max(200).optional(),
   email: z.string().email(),
   sujet: z.string().min(1).max(200),
   message: z.string().min(1).max(5000),

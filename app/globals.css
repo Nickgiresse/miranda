@@ -30,3 +30,16 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Scroll horizontal sur mobile pour tableaux et contenu qui dépasse */
+@media (max-width: 768px) {
+  .overflow-x-auto {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overflow-y: visible;
+  }
+  /* Tableaux dans un conteneur scrollable : garder leur largeur pour activer le scroll */
+  .overflow-x-auto table {
+    min-width: max-content;
+  }
+}

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { withDB } from "@/lib/db"
 import { requireAuth, requireAdmin } from "@/lib/auth/helpers"
 import { z } from "zod"
 
@@ -18,17 +18,21 @@ export async function GET(req: Request) {
     const isAdmin = session.user.role === "ADMIN" || session.user.role === "SUPER_ADMIN"
 
     if (asAdmin && isAdmin) {
-      const abonnements = await prisma.abonnement.findMany({
-        include: { user: { select: { id: true, email: true, fullName: true } } },
-        orderBy: { createdAt: "desc" },
-      })
+      const abonnements = await withDB((db) =>
+        db.abonnement.findMany({
+          include: { user: { select: { id: true, email: true, fullName: true } } },
+          orderBy: { createdAt: "desc" },
+        })
+      )
       return NextResponse.json(abonnements)
     }
 
-    const abonnements = await prisma.abonnement.findMany({
-      where: { userId: session.user.id },
-      orderBy: { createdAt: "desc" },
-    })
+    const abonnements = await withDB((db) =>
+      db.abonnement.findMany({
+        where: { userId: session.user.id },
+        orderBy: { createdAt: "desc" },
+      })
+    )
     return NextResponse.json(abonnements)
   } catch (e) {
     if (e instanceof Response) return e
@@ -50,34 +54,38 @@ export async function POST(req: Request) {
       const dateFin = new Date()
       dateFin.setMonth(dateFin.getMonth() + data.dureeMois)
 
-      const abonnement = await prisma.abonnement.create({
-        data: {
-          userId: data.userId,
-          prix: data.prix,
-          dateDebut,
-          dateFin,
-          isActive: true,
-        },
-      })
+      const abonnement = await withDB((db) =>
+        db.abonnement.create({
+          data: {
+            userId: data.userId,
+            prix: data.prix,
+            dateDebut,
+            dateFin,
+            isActive: true,
+          },
+        })
+      )
       return NextResponse.json(abonnement)
     }
 
     // Utilisateur : création abonnement pour soi (après paiement simulé)
-    const settings = await prisma.systemSettings.findFirst()
+    const settings = await withDB((db) => db.systemSettings.findFirst())
     const prix = settings?.prixAbonnement ?? 1000
     const dateDebut = new Date()
     const dateFin = new Date()
     dateFin.setFullYear(dateFin.getFullYear() + 1)
 
-    const abonnement = await prisma.abonnement.create({
-      data: {
-        userId: session.user.id,
-        prix,
-        dateDebut,
-        dateFin,
-        isActive: true,
-      },
-    })
+    const abonnement = await withDB((db) =>
+      db.abonnement.create({
+        data: {
+          userId: session.user.id,
+          prix,
+          dateDebut,
+          dateFin,
+          isActive: true,
+        },
+      })
+    )
     return NextResponse.json(abonnement)
   } catch (e) {
     if (e instanceof z.ZodError) {

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { withDB } from "@/lib/db"
 import { requireSuperAdmin } from "@/lib/auth/helpers"
 import { z } from "zod"
 
@@ -18,13 +18,15 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-    const filiere = await prisma.filiere.findUnique({
+    const filiere = await withDB((db) =>
+      db.filiere.findUnique({
       where: { id },
       include: {
         filiereNiveaux: { include: { niveau: true } },
         matieres: true,
       },
     })
+    )
     if (!filiere) return NextResponse.json({ error: "Filière introuvable" }, { status: 404 })
     return NextResponse.json(filiere)
   } catch {
@@ -43,7 +45,8 @@ export async function PATCH(
     const body = await req.json()
     const data = updateFiliereSchema.parse(body)
 
-    const filiere = await prisma.filiere.update({
+    const filiere = await withDB((db) =>
+      db.filiere.update({
       where: { id },
       data: {
         ...(data.nom != null && { nom: data.nom }),
@@ -53,6 +56,7 @@ export async function PATCH(
         ...(data.isActive !== undefined && { isActive: data.isActive }),
       },
     })
+    )
     return NextResponse.json(filiere)
   } catch (e) {
     if (e instanceof z.ZodError) {
@@ -71,7 +75,7 @@ export async function DELETE(
   try {
     await requireSuperAdmin()
     const { id } = await params
-    await prisma.filiere.delete({ where: { id } })
+    await withDB((db) => db.filiere.delete({ where: { id } }))
     return NextResponse.json({ success: true })
   } catch (e) {
     if (e instanceof Response) return e
