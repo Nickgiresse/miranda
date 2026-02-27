@@ -9,7 +9,8 @@
     "lint": "eslint",
     "seed": "npx prisma db seed",
     "db:push": "prisma db push",
-    "db:migrate": "prisma migrate dev"
+    "db:migrate": "prisma migrate dev",
+    "postinstall": "prisma generate"
   },
   "prisma": {
     "seed": "npx tsx scripts/seed.ts"

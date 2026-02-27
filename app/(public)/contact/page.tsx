@@ -3,7 +3,16 @@ import { Mail, MapPin, MessageCircle, Clock } from "lucide-react"
 import ContactForm from "@/components/ContactForm"
 
 export default async function ContactPage() {
-  const settings = await withDB((db) => db.systemSettings.findFirst())
+  const settings = await withDB((db) =>
+    db.systemSettings.findFirst({
+      select: {
+        contactEmail: true,
+        contactTel: true,
+        contactAdresse: true,
+        prixAbonnement: true,
+      },
+    })
+  )
 
   return (
     <div className="min-h-screen bg-slate-50 py-16">

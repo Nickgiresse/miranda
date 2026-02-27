@@ -69,7 +69,13 @@ export async function POST(req: Request) {
     }
 
     // Utilisateur : création abonnement pour soi (après paiement simulé)
-    const settings = await withDB((db) => db.systemSettings.findFirst())
+    const settings = await withDB((db) =>
+      db.systemSettings.findFirst({
+        select: {
+          prixAbonnement: true,
+        },
+      })
+    )
     const prix = settings?.prixAbonnement ?? 1000
     const dateDebut = new Date()
     const dateFin = new Date()
