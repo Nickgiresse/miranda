@@ -1,11 +1,11 @@
 "use client"
 import { useState, useEffect } from "react"
 import { usePathname } from "next/navigation"
-import { logoutAction } from "@/app/auth/actions"
+import { LogoutButton } from "@/components/LogoutButton"
 import Link from "next/link"
 import {
   LayoutDashboard, BookOpen, BookMarked,
-  Users, Settings, LogOut, ChevronRight, Menu, X
+  Users, Settings, ChevronRight, Menu, X
 } from "lucide-react"
 import { useSession } from "next-auth/react"
 import Logo from "@/components/Logo"
@@ -123,15 +123,7 @@ function Sidebar({
               </p>
             </div>
           </div>
-          <form action={logoutAction}>
-            <button
-              type="submit"
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 transition-all duration-200 text-xs font-medium"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              Déconnexion
-            </button>
-          </form>
+          <LogoutButton />
         </div>
       </div>
     </aside>

@@ -1,8 +1,8 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
-import { signOut } from "next-auth/react"
+import { usePathname } from "next/navigation"
+import { LogoutButton } from "@/components/LogoutButton"
 import {
   LayoutDashboard,
   BookOpen,
@@ -31,7 +31,6 @@ export function AdminSidebar({
   email: string
 }) {
   const pathname = usePathname()
-  const router = useRouter()
 
   const initial = (displayName || email || "A")[0].toUpperCase()
 
@@ -92,18 +91,7 @@ export function AdminSidebar({
               <p className="text-xs text-slate-400 truncate">{email}</p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={async () => {
-              await signOut({ redirect: false })
-              router.push("/login")
-              router.refresh()
-            }}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-slate-500 hover:text-red-600 hover:bg-red-50 transition-all duration-200 text-xs font-medium"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            Déconnexion
-          </button>
+          <LogoutButton />
         </div>
       </div>
     </aside>

@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs"
 import { redirect } from "next/navigation"
 import { withDB } from "@/lib/db"
 import { signIn, signOut } from "@/lib/auth"
+import { isRedirectError } from "next/dist/client/components/redirect-error"
 
 function normalizeEmail(email: string) {
   return email.trim().toLowerCase()
@@ -62,12 +63,9 @@ export async function registerAction(formData: FormData) {
   redirect(getRedirectByRole("USER", next))
 }
 
-export type LoginState = { error?: string; success?: boolean; role?: string } | null
+export type LoginResult = { success?: boolean; error?: string }
 
-export async function loginAction(
-  prevState: LoginState,
-  formData: FormData
-): Promise<LoginState> {
+export async function loginAction(formData: FormData): Promise<LoginResult> {
   const email = normalizeEmail(String(formData.get("email") || ""))
   const password = String(formData.get("password") || "")
 
@@ -84,12 +82,12 @@ export async function loginAction(
     )
 
     if (!user) {
-      return { error: "Identifiants invalides. Veuillez vérifier votre email et mot de passe." }
+      return { error: "Email ou mot de passe incorrect." }
     }
 
     const ok = await bcrypt.compare(password, user.password)
     if (!ok) {
-      return { error: "Identifiants invalides. Veuillez vérifier votre email et mot de passe." }
+      return { error: "Email ou mot de passe incorrect." }
     }
 
     await signIn("credentials", {
@@ -97,21 +95,22 @@ export async function loginAction(
       password,
       redirect: false,
     })
-    return { success: true, role: user.role }
+    return { success: true }
   } catch (error: unknown) {
+    if (isRedirectError(error)) throw error
     const err = error as { code?: string }
     if (err?.code === "ETIMEDOUT" || err?.code === "ECONNREFUSED" || err?.code === "P1001") {
       return {
-        error: "Impossible de se connecter à la base de données. Vérifiez que PostgreSQL est démarré et que DATABASE_URL est correct.",
+        error: "Impossible de se connecter à la base de données. Vérifiez que DATABASE_URL est correct.",
       }
     }
     if (err?.code?.startsWith?.("P")) {
       return { error: "Erreur de base de données. Veuillez réessayer plus tard." }
     }
-    return { error: "Une erreur est survenue. Veuillez réessayer." }
+    return { error: "Email ou mot de passe incorrect." }
   }
 }
 
 export async function logoutAction() {
-  await signOut({ redirectTo: "/login" })
+  await signOut({ redirect: false })
 }

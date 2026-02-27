@@ -1,6 +1,7 @@
 "use client"
 
-import { useSession, signOut } from "next-auth/react"
+import { useSession } from "next-auth/react"
+import { LogoutButton } from "@/components/LogoutButton"
 import Link from "next/link"
 import { useState, useRef, useEffect } from "react"
 import {
@@ -148,19 +149,15 @@ export function Navbar() {
                     </div>
 
                     <div className="px-1.5 pb-1.5 border-t border-slate-100 pt-1.5">
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          await signOut({ redirect: false })
-                          setUserOpen(false)
-                          router.push("/login")
-                          router.refresh()
-                        }}
+                      <LogoutButton
                         className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-red-500 hover:bg-red-50 transition-all duration-150"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        Déconnexion
-                      </button>
+                        children={
+                          <>
+                            <LogOut className="w-4 h-4" />
+                            Déconnexion
+                          </>
+                        }
+                      />
                     </div>
                   </div>
                 )}
