@@ -9,7 +9,6 @@ if (!directUrl) {
 }
 
 export default defineConfig({
-  earlyAccess: true,
   schema: "prisma/schema.prisma",
   datasource: {
     url: directUrl,             // plus de env("...")
