@@ -14,15 +14,17 @@ export async function createMatiere(
     const filiereId = String(formData.get("filiereId") ?? "")
     if (!nom || !filiereId) return { error: "Champs manquants" }
 
-    const existing = await prisma.matiere.findFirst({
-      where: {
-        nom: { equals: nom, mode: "insensitive" },
-        filiereId,
-      },
-    })
+    const existing = await withDB((db) =>
+      db.matiere.findFirst({
+        where: {
+          nom: { equals: nom, mode: "insensitive" },
+          filiereId,
+        },
+      })
+    )
     if (existing) return { error: "Cette matière existe déjà pour cette filière" }
 
-    await prisma.matiere.create({ data: { nom, filiereId } })
+    await withDB((db) => db.matiere.create({ data: { nom, filiereId } }))
     revalidatePath("/admin/matieres")
     return {}
   } catch (e) {
