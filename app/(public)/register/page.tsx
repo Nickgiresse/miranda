@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { Suspense, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Lock, Mail, User, Loader2, XCircle, ChevronRight } from "lucide-react"
@@ -8,7 +8,7 @@ import Logo from "@/components/Logo"
 import { useSearchParams } from "next/navigation"
 import { registerAction } from "@/app/auth/actions"
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const next = searchParams.get("next") || ""
@@ -200,5 +200,32 @@ export default function RegisterPage() {
         </p>
       </div>
     </div>
+  )
+}
+
+function RegisterFallback() {
+  return (
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <Logo href="/" width={130} height={44} className="mb-8" />
+          <h1 className="text-2xl font-bold text-slate-900">Créer un compte</h1>
+          <p className="text-slate-500 text-sm mt-2">
+            Rejoignez Miranda et accédez aux épreuves
+          </p>
+        </div>
+        <div className="bg-white rounded-2xl shadow-sm p-8 flex items-center justify-center min-h-[320px]">
+          <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<RegisterFallback />}>
+      <RegisterForm />
+    </Suspense>
   )
 }
