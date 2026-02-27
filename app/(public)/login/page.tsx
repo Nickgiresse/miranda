@@ -7,24 +7,28 @@ import { useActionState } from "react"
 import { Lock, Mail, XCircle, Loader2 } from "lucide-react"
 import Logo from "@/components/Logo"
 import { useSearchParams } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { loginAction } from "@/app/auth/actions"
 
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { update } = useSession()
   const next = searchParams.get("next") || ""
   const [state, formAction, pending] = useActionState(loginAction, null)
 
   useEffect(() => {
     if (state?.success) {
-      router.push(
-        state.role === "ADMIN" || state.role === "SUPER_ADMIN"
-          ? "/admin/dashboard"
-          : next || "/"
-      )
-      router.refresh()
+      update().then(() => {
+        router.push(
+          state.role === "ADMIN" || state.role === "SUPER_ADMIN"
+            ? "/admin/dashboard"
+            : next || "/"
+        )
+        router.refresh()
+      })
     }
-  }, [state, next, router])
+  }, [state, next, router, update])
 
   const error = state?.error
 
