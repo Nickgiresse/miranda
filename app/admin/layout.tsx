@@ -182,9 +182,9 @@ export default function AdminLayout({
       )}
 
       {/* ── Contenu principal ── */}
-      <div className="flex-1 lg:ml-64 flex flex-col min-h-screen">
+      <div className="flex-1 lg:ml-64 flex flex-col h-screen overflow-hidden">
         {/* Topbar mobile */}
-        <header className="lg:hidden sticky top-0 z-30 bg-white border-b border-slate-100 shadow-sm">
+        <header className="lg:hidden sticky top-0 z-30 bg-white border-b border-slate-100 shadow-sm flex-shrink-0">
           <div className="flex items-center justify-between px-4 h-14">
             {/* Bouton hamburger */}
             <button
@@ -203,8 +203,10 @@ export default function AdminLayout({
           </div>
         </header>
 
-        {/* Page content */}
-        <main className="flex-1 p-4 md:p-6 lg:p-8">{children}</main>
+        {/* Page content — scroll interne */}
+        <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-hidden flex flex-col">
+          {children}
+        </main>
       </div>
     </div>
   )

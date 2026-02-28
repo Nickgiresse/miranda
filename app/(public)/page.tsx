@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowRight, BookOpen, CheckCircle, GraduationCap, Users, FolderOpen } from "lucide-react";
 import { getWhatsAppAbonnementUrl } from "@/lib/whatsapp";
 import { motion } from "framer-motion";
+import BoutonCommencer from "@/components/BoutonCommencer";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 24 },
@@ -55,12 +56,7 @@ export default function Home() {
             transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
             className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start"
           >
-            <Link
-              href="/register"
-              className="w-full sm:w-auto px-8 py-4 bg-slate-900 text-white font-semibold rounded-2xl hover:bg-slate-700 transition-all flex items-center justify-center gap-2 text-center text-sm"
-            >
-              Commencer maintenant <ArrowRight className="h-5 w-5" />
-            </Link>
+            <BoutonCommencer />
             <Link
               href="/epreuves"
               className="w-full sm:w-auto px-8 py-4 bg-white text-slate-900 font-semibold rounded-2xl hover:bg-slate-50 transition-all border border-slate-200 flex items-center justify-center gap-2 text-center text-sm"

@@ -6,41 +6,44 @@ import { useRouter } from "next/navigation"
 import { Lock, Mail, User, Loader2, XCircle, ChevronRight } from "lucide-react"
 import Logo from "@/components/Logo"
 import { useSearchParams } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { registerAction } from "@/app/auth/actions"
 
 function RegisterForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { update } = useSession()
   const next = searchParams.get("next") || ""
   const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [pending, setPending] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setError(null)
-    if (password !== confirmPassword) {
-      setError("Les deux mots de passe ne correspondent pas.")
+    setLoading(true)
+    setError("")
+
+    const formData = new FormData(e.currentTarget)
+    const confirm = (formData.get("confirm") as string) || ""
+
+    if (password !== confirm) {
+      setError("Les mots de passe ne correspondent pas")
+      setLoading(false)
       return
     }
-    if (password.length < 6) {
-      setError("Le mot de passe doit contenir au moins 6 caractères.")
+
+    const result = await registerAction(formData)
+
+    if (result?.error) {
+      setError(result.error)
+      setLoading(false)
       return
     }
-    setPending(true)
-    const form = e.currentTarget
-    const formData = new FormData(form)
-    formData.set("password", password)
-    try {
-      await registerAction(formData)
-      router.push(next || "/")
-      router.refresh()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Une erreur est survenue.")
-    } finally {
-      setPending(false)
-    }
+
+    await update()
+    router.push(next || "/")
+    router.refresh()
+    setLoading(false)
   }
 
   return (
@@ -60,7 +63,7 @@ function RegisterForm() {
         {/* Card formulaire */}
         <div className="bg-white rounded-2xl shadow-sm p-8">
           {error && (
-            <div className="flex items-center gap-2.5 bg-red-50 text-red-600 rounded-xl px-4 py-3 text-sm mb-6">
+            <div className="flex items-center gap-2 bg-red-50 text-red-600 rounded-xl px-4 py-3 text-sm mb-6">
               <XCircle className="w-4 h-4 flex-shrink-0" />
               {error}
             </div>
@@ -80,8 +83,8 @@ function RegisterForm() {
                   type="text"
                   name="fullName"
                   placeholder="Jean Dupont"
-                  disabled={pending}
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl text-sm ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 placeholder:text-slate-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={loading}
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl text-sm ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-900 placeholder:text-slate-300 transition-all duration-200 disabled:opacity-50"
                 />
               </div>
             </div>
@@ -98,8 +101,8 @@ function RegisterForm() {
                   name="email"
                   placeholder="vous@exemple.cm"
                   required
-                  disabled={pending}
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl text-sm ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 placeholder:text-slate-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={loading}
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl text-sm ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-900 placeholder:text-slate-300 transition-all duration-200 disabled:opacity-50"
                 />
               </div>
             </div>
@@ -118,34 +121,32 @@ function RegisterForm() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  disabled={pending}
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl text-sm ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 placeholder:text-slate-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={loading}
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl text-sm ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-900 placeholder:text-slate-300 transition-all duration-200 disabled:opacity-50"
                 />
               </div>
-              <div className="mt-2 space-y-1">
-                <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full rounded-full transition-all duration-300 ${
-                      password.length === 0
-                        ? "w-0"
-                        : password.length < 6
+              {password.length > 0 && (
+                <div className="mt-2 space-y-1">
+                  <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all duration-300 ${
+                        password.length < 6
                           ? "w-1/3 bg-red-400"
                           : password.length < 10
                             ? "w-2/3 bg-amber-400"
                             : "w-full bg-emerald-400"
-                    }`}
-                  />
-                </div>
-                <p className="text-xs text-slate-400">
-                  {password.length === 0
-                    ? ""
-                    : password.length < 6
+                      }`}
+                    />
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    {password.length < 6
                       ? "Trop court"
                       : password.length < 10
                         ? "Acceptable"
                         : "Fort ✓"}
-                </p>
-              </div>
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Confirmer mot de passe */}
@@ -157,30 +158,28 @@ function RegisterForm() {
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="password"
+                  name="confirm"
                   placeholder="••••••••"
                   required
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  disabled={pending}
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl text-sm ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 placeholder:text-slate-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={loading}
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl text-sm ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-900 placeholder:text-slate-300 transition-all duration-200 disabled:opacity-50"
                 />
               </div>
             </div>
 
-            {/* Bouton */}
             <button
               type="submit"
-              disabled={pending}
+              disabled={loading}
               className="w-full py-3 bg-slate-900 hover:bg-slate-700 text-white rounded-xl font-semibold text-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 flex items-center justify-center gap-2"
             >
-              {pending ? (
-                <>
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Création du compte...
-                </>
+                  Création...
+                </span>
               ) : (
                 <>
-                  Créer un compte
+                  Créer mon compte
                   <ChevronRight className="w-4 h-4" />
                 </>
               )}
