@@ -2,8 +2,12 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useSession } from "next-auth/react"
 import { Eye, Download, FileCheck } from "lucide-react"
 import { toast } from "@/components/ui/Toast"
+
+const WHATSAPP_ABO_URL =
+  "https://wa.me/237656966582?text=Bonjour%2C%20je%20voudrais%20m%27abonner%20pour%20avoir%20acc%C3%A8s%20aux%20%C3%A9preuves%20payantes."
 
 type EpreuveCardProps = {
   epreuve: {
@@ -34,7 +38,16 @@ export function EpreuveCard({
   filiereCouleur = "#64748b",
 }: EpreuveCardProps) {
   const router = useRouter()
+  const { data: session } = useSession()
   const [loading, setLoading] = useState<"voir" | "download" | "corrige" | null>(null)
+
+  function checkAuth(): boolean {
+    if (!session?.user) {
+      router.push("/login")
+      return false
+    }
+    return true
+  }
 
   async function handleAccess(actionType: "voir" | "telecharger" | "corriger") {
     const fileType = actionType === "corriger" ? "corrige" : "epreuve"
@@ -64,9 +77,8 @@ export function EpreuveCard({
       return
     }
 
-    if (!isConnected) {
+    if (!checkAuth()) {
       toast.error("Connectez-vous pour accéder à cette épreuve.")
-      router.push("/login")
       return
     }
 
@@ -81,13 +93,17 @@ export function EpreuveCard({
       })
       const data = await res.json()
 
+      if (res.status === 401) {
+        router.push("/login")
+        return
+      }
+      if (res.status === 403) {
+        window.open(data.whatsapp ?? WHATSAPP_ABO_URL, "_blank")
+        toast.error(data.error ?? "Un abonnement actif est requis.")
+        return
+      }
       if (!res.ok) {
         toast.error(data.error ?? "Erreur d'accès")
-        if (res.status === 403 && data.whatsapp) {
-          window.open(data.whatsapp, "_blank")
-        } else if (data.redirect) {
-          router.push(data.redirect)
-        }
         return
       }
 

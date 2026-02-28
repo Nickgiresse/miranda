@@ -23,7 +23,7 @@ export function AddMatiereForm({ filieres }: { filieres: Filiere[] }) {
       )}
       <form action={formAction} className="flex flex-wrap items-end gap-3">
         <div className="min-w-[200px]">
-          <label htmlFor="nom" className="block text-xs font-medium text-muted-foreground mb-1">
+          <label htmlFor="nom" className="block text-xs font-medium text-slate-600 mb-1">
             Nom de la matière
           </label>
           <input
@@ -36,7 +36,7 @@ export function AddMatiereForm({ filieres }: { filieres: Filiere[] }) {
           />
         </div>
         <div className="min-w-[180px]">
-          <label htmlFor="filiereId" className="block text-xs font-medium text-muted-foreground mb-1">
+          <label htmlFor="filiereId" className="block text-xs font-medium text-slate-600 mb-1">
             Filière
           </label>
           <select

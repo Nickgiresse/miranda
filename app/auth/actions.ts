@@ -1,7 +1,6 @@
 "use server"
 
 import bcrypt from "bcryptjs"
-import { redirect } from "next/navigation"
 import { withDB } from "@/lib/db"
 import { signIn, signOut } from "@/lib/auth"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
@@ -10,57 +9,59 @@ function normalizeEmail(email: string) {
   return email.trim().toLowerCase()
 }
 
-function getRedirectByRole(role: string, next: string): string {
-  if (next && next.startsWith("/")) return next
-  if (role === "ADMIN" || role === "SUPER_ADMIN") return "/admin/dashboard"
-  return "/"
-}
+export type RegisterResult = { success?: boolean; error?: string }
 
-export async function registerAction(formData: FormData) {
-  const name = String(formData.get("name") ?? formData.get("fullName") ?? "").trim()
+export async function registerAction(formData: FormData): Promise<RegisterResult> {
+  const fullName = String(formData.get("fullName") ?? formData.get("name") ?? "").trim()
   const email = normalizeEmail(String(formData.get("email") || ""))
   const password = String(formData.get("password") || "")
-  const next = String(formData.get("next") || "")
 
   if (!email || !password) {
-    throw new Error("Email et mot de passe requis.")
+    return { error: "Email et mot de passe requis." }
   }
   if (password.length < 6) {
-    throw new Error("Mot de passe trop court (min 6 caractères).")
+    return { error: "Le mot de passe doit contenir au moins 6 caractères." }
   }
 
-  const passwordHash = await bcrypt.hash(password, 10)
-
   try {
-    const user = await withDB((db) =>
+    const existing = await withDB((db) =>
+      db.user.findUnique({ where: { email } })
+    )
+    if (existing) {
+      return { error: "Cet email est déjà utilisé." }
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12)
+
+    await withDB((db) =>
       db.user.create({
         data: {
           email,
           password: passwordHash,
-          fullName: name || null,
+          fullName: fullName || null,
           role: "USER",
         },
-        select: { id: true, role: true },
       })
     )
 
     await signIn("credentials", {
       email,
       password,
-      redirectTo: getRedirectByRole(user.role, next),
+      redirect: false,
     })
+    return { success: true }
   } catch (e: unknown) {
+    if (isRedirectError(e)) throw e
     const err = e as { code?: string }
     if (err?.code === "P2002") {
-      throw new Error("Un compte existe déjà avec cet email.")
+      return { error: "Cet email est déjà utilisé." }
     }
     if (err?.code === "ETIMEDOUT" || err?.code === "ECONNREFUSED" || err?.code === "P1001") {
-      throw new Error("Impossible de se connecter à la base de données. Vérifiez que PostgreSQL est démarré.")
+      return { error: "Impossible de se connecter à la base de données." }
     }
-    throw e
+    console.error("Register error:", err)
+    return { error: "Erreur lors de la création du compte." }
   }
-
-  redirect(getRedirectByRole("USER", next))
 }
 
 export type LoginResult = { success?: boolean; error?: string }

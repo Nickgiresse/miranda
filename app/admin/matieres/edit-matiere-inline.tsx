@@ -52,7 +52,7 @@ export function EditMatiereInline({
           type="button"
           onClick={() => { setEditing(false); setNom(initialNom) }}
           disabled={isPending}
-          className="p-1.5 rounded-md text-muted-foreground hover:bg-muted disabled:opacity-50"
+          className="p-1.5 rounded-md text-slate-600 hover:bg-muted disabled:opacity-50"
           aria-label="Annuler"
         >
           <X className="h-4 w-4" />
@@ -67,7 +67,7 @@ export function EditMatiereInline({
       <button
         type="button"
         onClick={() => setEditing(true)}
-        className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
+        className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-slate-600 hover:bg-muted hover:text-slate-900"
         aria-label="Modifier"
       >
         <Pencil className="h-4 w-4" />
