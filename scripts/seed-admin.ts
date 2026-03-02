@@ -2,7 +2,7 @@ import "dotenv/config"
 import bcrypt from "bcryptjs"
 import { prisma } from "../lib/prisma"
 
-const ADMIN_EMAIL = "miranda@gmail.com"
+const ADMIN_EMAIL = "mirandaawoulebe@gmail.com"
 const ADMIN_PASSWORD = "miranda12"
 const ADMIN_FULL_NAME = "Administrateur Miranda"
 

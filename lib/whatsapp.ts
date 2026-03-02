@@ -1,4 +1,5 @@
-export const WHATSAPP_ADMIN = "237656966582"
+export const WHATSAPP_ADMIN = "237687433132"
+export const EMAIL_CONTACT = "mirandaawoulebe@gmail.com"
 
 export function getWhatsAppAbonnementUrl(userName?: string | null) {
   const message = userName

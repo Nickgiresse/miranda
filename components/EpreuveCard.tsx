@@ -7,7 +7,7 @@ import { Eye, Download, FileCheck } from "lucide-react"
 import { toast } from "@/components/ui/Toast"
 
 const WHATSAPP_ABO_URL =
-  "https://wa.me/237656966582?text=Bonjour%2C%20je%20voudrais%20m%27abonner%20pour%20avoir%20acc%C3%A8s%20aux%20%C3%A9preuves%20payantes."
+  "https://wa.me/237687433132?text=Bonjour%2C%20je%20voudrais%20m%27abonner%20pour%20avoir%20acc%C3%A8s%20aux%20%C3%A9preuves%20payantes."
 
 type EpreuveCardProps = {
   epreuve: {

@@ -1,31 +1,41 @@
-import { NextResponse } from "next/server"
-import { z } from "zod"
+import { NextRequest, NextResponse } from "next/server"
+import { isValidEmail } from "@/lib/validators"
+import { WHATSAPP_ADMIN } from "@/lib/whatsapp"
 
-const contactSchema = z.object({
-  nom: z.string().max(200).optional(),
-  email: z.string().email(),
-  sujet: z.string().min(1).max(200),
-  message: z.string().min(1).max(5000),
-})
-
-// POST /api/contact - envoi message (à brancher sur email / service)
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  let body: { nom?: string; email?: string; sujet?: string; message?: string }
   try {
-    const body = await req.json()
-    const data = contactSchema.parse(body)
-
-    // TODO: envoyer email via Resend, SendGrid, etc. avec data.email, data.sujet, data.message
-    // pour l'instant on simule le succès
-    console.log("[Contact]", data)
-
-    return NextResponse.json({
-      success: true,
-      message: "Votre message a bien été envoyé.",
-    })
-  } catch (e) {
-    if (e instanceof z.ZodError) {
-      return NextResponse.json({ error: e.flatten() }, { status: 400 })
-    }
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 })
+    body = await req.json()
+  } catch {
+    return NextResponse.json({ error: "Corps de requête invalide" }, { status: 400 })
   }
+
+  const nom = body.nom?.trim()
+  const email = (body.email as string)?.trim()
+  const sujet = body.sujet?.trim()
+  const message = body.message?.trim()
+
+  if (!nom) {
+    return NextResponse.json({ error: "Nom requis" }, { status: 400 })
+  }
+
+  if (!email || !isValidEmail(email)) {
+    return NextResponse.json({ error: "Email invalide" }, { status: 400 })
+  }
+
+  if (!message) {
+    return NextResponse.json({ error: "Message requis" }, { status: 400 })
+  }
+
+  const whatsappMsg =
+    `Nouveau message de contact Miranda:\n\n` +
+    `👤 Nom: ${nom}\n` +
+    `📧 Email: ${email}\n` +
+    `📌 Sujet: ${sujet || "Non précisé"}\n\n` +
+    `💬 Message:\n${message}`
+
+  return NextResponse.json({
+    success: true,
+    whatsapp: `https://wa.me/${WHATSAPP_ADMIN}?text=${encodeURIComponent(whatsappMsg)}`,
+  })
 }

@@ -32,7 +32,7 @@ export default async function ContactPage() {
         <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
           <div className="md:col-span-2 space-y-4">
             <a
-              href="https://wa.me/237690021434"
+              href="https://wa.me/237687433132"
               target="_blank"
               rel="noopener noreferrer"
               className="group flex items-start gap-4 bg-white rounded-2xl p-5 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200"
@@ -43,7 +43,7 @@ export default async function ContactPage() {
               <div>
                 <p className="text-sm font-semibold text-slate-900">WhatsApp</p>
                 <p className="text-sm text-slate-500 mt-0.5">
-                  +237 690 021 434
+                  +237 687 433 132
                 </p>
                 <p className="text-xs text-slate-400 mt-1">Réponse rapide</p>
               </div>
@@ -56,7 +56,7 @@ export default async function ContactPage() {
               <div>
                 <p className="text-sm font-semibold text-slate-900">Email</p>
                 <p className="text-sm text-slate-500 mt-0.5">
-                  {settings?.contactEmail ?? "contact@miranda.cm"}
+                  {settings?.contactEmail ?? "mirandaawoulebe@gmail.com"}
                 </p>
                 <p className="text-xs text-slate-400 mt-1">Réponse sous 24h</p>
               </div>
@@ -69,7 +69,7 @@ export default async function ContactPage() {
               <div>
                 <p className="text-sm font-semibold text-slate-900">Adresse</p>
                 <p className="text-sm text-slate-500 mt-0.5">
-                  {settings?.contactAdresse ?? "Collège Mvong, Cameroun"}
+                  {settings?.contactAdresse ?? "Prepare Vogt, Cameroun"}
                 </p>
               </div>
             </div>
