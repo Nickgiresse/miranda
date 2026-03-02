@@ -91,9 +91,9 @@ export default function Home() {
               variants={fadeUp}
               transition={{ duration: 0.6, ease: "easeOut" }}
             >
-              <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">À propos de Miranda & Collège Vogt</h2>
+              <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">À propos de Miranda & Prepare Vogt</h2>
               <p className="text-slate-600 text-lg leading-relaxed">
-                Née de l'excellence académique du <strong>Collège Mvong</strong>, cette application a été conçue pour offrir aux élèves un accès illimité aux ressources pédagogiques.
+                Née de l'excellence académique du <strong>Prepare Mvong</strong>, cette application a été conçue pour offrir aux élèves un accès illimité aux ressources pédagogiques.
                 Que vous soyez en Niveau 1 ou Niveau 2, nous centralisons toutes les épreuves passées pour faciliter vos révisions.
               </p>
               <ul className="space-y-3 text-slate-900">

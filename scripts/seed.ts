@@ -80,7 +80,7 @@ async function main() {
     create: {
       id: 1,
       prixAbonnement: 1000,
-      contactEmail: "contact@miranda.com",
+      contactEmail: "mirandaawoulebe@gmail.com",
       contactTel: "+228 90 00 00 00",
       contactAdresse: "Lomé, Togo",
     },

@@ -10,6 +10,8 @@ import {
   Loader2,
 } from "lucide-react"
 import { toast } from "@/components/ui/Toast"
+import { isValidEmail } from "@/lib/validators"
+import { WHATSAPP_ADMIN } from "@/lib/whatsapp"
 
 export default function ContactForm() {
   const [form, setForm] = useState({
@@ -23,6 +25,10 @@ export default function ContactForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (!isValidEmail(form.email)) {
+      toast.error("Adresse email invalide. Vérifiez le format.")
+      return
+    }
     setLoading(true)
     try {
       const res = await fetch("/api/contact", {
@@ -30,9 +36,16 @@ export default function ContactForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       })
-      if (!res.ok) throw new Error()
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data?.error ?? "Erreur lors de l'envoi.")
+        return
+      }
       setSent(true)
       toast.success("Message envoyé avec succès !")
+      if (data.whatsapp) {
+        window.open(data.whatsapp, "_blank")
+      }
     } catch {
       toast.error("Erreur lors de l'envoi. Réessayez.")
     } finally {
@@ -100,6 +113,13 @@ export default function ContactForm() {
                 required
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
+                onBlur={(e) => {
+                  if (e.target.value && !isValidEmail(e.target.value)) {
+                    toast.error("Format email invalide")
+                  }
+                }}
+                pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
+                title="Format: nom@domaine.com"
                 placeholder="vous@exemple.cm"
                 className="w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl text-sm ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 placeholder:text-slate-300 transition-all duration-200"
               />
@@ -154,7 +174,7 @@ export default function ContactForm() {
         <p className="text-xs text-center text-slate-400">
           Vous pouvez aussi nous contacter directement sur{" "}
           <a
-            href="https://wa.me/237690021434"
+            href={`https://wa.me/${WHATSAPP_ADMIN}`}
             target="_blank"
             rel="noopener noreferrer"
             className="text-emerald-600 hover:underline font-medium"

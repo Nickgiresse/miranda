@@ -3,6 +3,7 @@
 import bcrypt from "bcryptjs"
 import { withDB } from "@/lib/db"
 import { signIn, signOut } from "@/lib/auth"
+import { isValidEmail, isValidPassword } from "@/lib/validators"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 
 function normalizeEmail(email: string) {
@@ -12,15 +13,23 @@ function normalizeEmail(email: string) {
 export type RegisterResult = { success?: boolean; error?: string }
 
 export async function registerAction(formData: FormData): Promise<RegisterResult> {
-  const fullName = String(formData.get("fullName") ?? formData.get("name") ?? "").trim()
+  const fullName = (formData.get("fullName") as string)?.trim() ?? (formData.get("name") as string)?.trim() ?? ""
   const email = normalizeEmail(String(formData.get("email") || ""))
   const password = String(formData.get("password") || "")
 
-  if (!email || !password) {
-    return { error: "Email et mot de passe requis." }
+  if (!fullName || fullName.length < 2) {
+    return { error: "Veuillez entrer votre nom complet" }
   }
-  if (password.length < 6) {
-    return { error: "Le mot de passe doit contenir au moins 6 caractères." }
+
+  if (!email || !isValidEmail(email)) {
+    return {
+      error: "Adresse email invalide. Vérifiez le format (ex: nom@exemple.com)",
+    }
+  }
+
+  const pwCheck = isValidPassword(password)
+  if (!pwCheck.valid) {
+    return { error: pwCheck.message }
   }
 
   try {
@@ -28,7 +37,9 @@ export async function registerAction(formData: FormData): Promise<RegisterResult
       db.user.findUnique({ where: { email } })
     )
     if (existing) {
-      return { error: "Cet email est déjà utilisé." }
+      return {
+        error: "Un compte existe déjà avec cette adresse email",
+      }
     }
 
     const passwordHash = await bcrypt.hash(password, 12)
@@ -54,13 +65,13 @@ export async function registerAction(formData: FormData): Promise<RegisterResult
     if (isRedirectError(e)) throw e
     const err = e as { code?: string }
     if (err?.code === "P2002") {
-      return { error: "Cet email est déjà utilisé." }
+      return { error: "Un compte existe déjà avec cette adresse email" }
     }
     if (err?.code === "ETIMEDOUT" || err?.code === "ECONNREFUSED" || err?.code === "P1001") {
       return { error: "Impossible de se connecter à la base de données." }
     }
     console.error("Register error:", err)
-    return { error: "Erreur lors de la création du compte." }
+    return { error: "Erreur lors de la création" }
   }
 }
 
@@ -70,8 +81,12 @@ export async function loginAction(formData: FormData): Promise<LoginResult> {
   const email = normalizeEmail(String(formData.get("email") || ""))
   const password = String(formData.get("password") || "")
 
-  if (!email || !password) {
-    return { error: "Email et mot de passe requis." }
+  if (!email || !isValidEmail(email)) {
+    return { error: "Adresse email invalide" }
+  }
+
+  if (!password) {
+    return { error: "Mot de passe requis" }
   }
 
   try {

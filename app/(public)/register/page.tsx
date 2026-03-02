@@ -8,6 +8,7 @@ import Logo from "@/components/Logo"
 import { useSearchParams } from "next/navigation"
 import { useSession } from "next-auth/react"
 import { registerAction } from "@/app/auth/actions"
+import { isValidEmail } from "@/lib/validators"
 
 function RegisterForm() {
   const router = useRouter()
@@ -15,8 +16,20 @@ function RegisterForm() {
   const { update } = useSession()
   const next = searchParams.get("next") || ""
   const [password, setPassword] = useState("")
+  const [email, setEmail] = useState("")
+  const [emailError, setEmailError] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+
+  function handleEmailChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const val = e.target.value
+    setEmail(val)
+    if (val && !isValidEmail(val)) {
+      setEmailError("Format invalide (ex: nom@exemple.com)")
+    } else {
+      setEmailError("")
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -99,12 +112,24 @@ function RegisterForm() {
                 <input
                   type="email"
                   name="email"
+                  value={email}
+                  onChange={handleEmailChange}
                   placeholder="vous@exemple.cm"
                   required
                   disabled={loading}
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl text-sm ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-900 placeholder:text-slate-300 transition-all duration-200 disabled:opacity-50"
+                  className={`w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl text-sm transition-all duration-200 focus:outline-none text-slate-900 placeholder:text-slate-300 disabled:opacity-50 ${
+                    emailError
+                      ? "ring-2 ring-red-400"
+                      : "ring-1 ring-slate-200 focus:ring-2 focus:ring-slate-900"
+                  }`}
                 />
               </div>
+              {emailError && (
+                <p className="text-xs text-red-500 mt-1 flex items-center gap-1">
+                  <XCircle className="w-3 h-3" />
+                  {emailError}
+                </p>
+              )}
             </div>
 
             {/* Mot de passe */}

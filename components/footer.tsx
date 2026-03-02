@@ -24,7 +24,7 @@ export function Footer() {
               />
             </div>
             <p className="text-sm leading-relaxed">
-              La plateforme officielle des épreuves du Collège Mvong.
+              La plateforme officielle des épreuves de Prepare Vogt.
             </p>
           </div>
 
@@ -67,9 +67,9 @@ export function Footer() {
               Contact
             </p>
             <ul className="space-y-2.5 text-sm">
-              <li>contact@miranda.cm</li>
-              <li>+237 690 021 434</li>
-              <li>Collège Mvong, Cameroun</li>
+              <li>mirandaawoulebe@gmail.com</li>
+              <li>+237 687 433 132</li>
+              <li>Prepare Vogt, Cameroun</li>
             </ul>
           </div>
         </div>
