@@ -2,20 +2,25 @@ import "dotenv/config"
 import bcrypt from "bcryptjs"
 import { prisma } from "../lib/prisma"
 
+async function getOrCreateNiveau(
+  numero: number,
+  label: string
+) {
+  const existing = await prisma.niveau.findFirst({
+    where: { numero, label }
+  })
+  if (existing) return existing
+  return prisma.niveau.create({
+    data: { numero, label }
+  })
+}
+
 async function main() {
   console.log("🌱 Seed Miranda...")
 
   // Niveaux
-  const n1 = await prisma.niveau.upsert({
-    where: { numero: 1 },
-    create: { numero: 1, label: "Niveau 1" },
-    update: {},
-  })
-  const n2 = await prisma.niveau.upsert({
-    where: { numero: 2 },
-    create: { numero: 2, label: "Niveau 2" },
-    update: {},
-  })
+  const n1 = await getOrCreateNiveau(1, "Niveau 1")
+  const n2 = await getOrCreateNiveau(2, "Niveau 2")
   console.log("  Niveaux OK")
 
   // Filieres: SPH vert, IGC bleu, MF rouge, IGEA bordeaux, INGE violet

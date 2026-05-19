@@ -1,6 +1,6 @@
 import { requireAdmin } from "@/lib/auth/helpers"
 import { prisma } from "@/lib/prisma"
-import FilieresManager from "./FilieresManager"
+import FilieresManager from "@/app/admin/filieres/FilieresManager"
 
 export const dynamic = "force-dynamic"
 
