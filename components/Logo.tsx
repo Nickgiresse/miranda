@@ -19,7 +19,7 @@ export default function Logo({
   const image = (
     <Image
       src="/logo.png"
-      alt="Miranda - Collège Mvong"
+      alt="Miranda - Saint Jean"
       width={width}
       height={height}
       className={`object-contain ${className}`}

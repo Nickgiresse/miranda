@@ -89,7 +89,7 @@ export default async function AdminEpreuvesPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3.5 text-slate-600 whitespace-nowrap">
-                    N{ep.filiereNiveau.niveau.numero}
+                    {ep.filiereNiveau.niveau.label ?? `N${ep.filiereNiveau.niveau.numero}`}
                   </td>
                   <td className="px-4 py-3.5 text-slate-600 whitespace-nowrap">
                     {ep.matiere?.nom ?? "—"}

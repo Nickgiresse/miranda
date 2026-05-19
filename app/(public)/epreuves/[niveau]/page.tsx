@@ -7,30 +7,39 @@ export default async function EpreuvesNiveauPage(props: {
   params: Promise<{ niveau: string }>
 }) {
   const params = await props.params
+  const cleanNiveau = params.niveau.startsWith("niveau-")
+    ? params.niveau.replace("niveau-", "")
+    : params.niveau
+  const niveauNum = parseInt(cleanNiveau, 10)
 
-  if (!["niveau-1", "niveau-2"].includes(params.niveau)) {
+  if (Number.isNaN(niveauNum)) {
     notFound()
   }
 
-  const niveauNum = parseInt(params.niveau.split("-")[1]!, 10)
-
-  const filiereNiveaux = await withDB((db) =>
-    db.filiereNiveau.findMany({
+  const { filiereNiveaux, niveau } = await withDB(async (db) => {
+    const list = await db.filiereNiveau.findMany({
       where: { niveau: { numero: niveauNum } },
       include: {
         filiere: { select: { code: true, nom: true, couleur: true } },
+        niveau: true,
         _count: { select: { epreuves: true } },
       },
       orderBy: { filiere: { code: "asc" } },
     })
-  )
+    const niv = await db.niveau.findFirst({
+      where: { numero: niveauNum },
+    })
+    return { filiereNiveaux: list, niveau: niv }
+  })
+
+  const niveauLabel = niveau?.label ?? `Niveau ${niveauNum}`
 
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="max-w-6xl mx-auto px-4 py-12">
         <div className="mb-10 text-center">
           <h1 className="text-2xl font-bold text-slate-900">
-            Épreuves — Niveau {niveauNum}
+            Épreuves — {niveauLabel}
           </h1>
           <p className="text-slate-400 text-sm mt-1 max-w-xl mx-auto">
             Accédez aux épreuves et corrigés selon votre filière.

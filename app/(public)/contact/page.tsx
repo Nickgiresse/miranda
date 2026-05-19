@@ -69,7 +69,7 @@ export default async function ContactPage() {
               <div>
                 <p className="text-sm font-semibold text-slate-900">Adresse</p>
                 <p className="text-sm text-slate-500 mt-0.5">
-                  {settings?.contactAdresse ?? "Prepare Vogt, Cameroun"}
+                  {settings?.contactAdresse ?? "Saint Jean, Cameroun"}
                 </p>
               </div>
             </div>

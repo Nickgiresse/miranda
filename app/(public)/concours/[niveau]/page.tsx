@@ -32,7 +32,7 @@ export default async function ConcoursLevelPage(props: { params: Promise<{ nivea
                     Concours - <span className="text-primary">{title}</span>
                 </h1>
                 <p className="text-muted-foreground text-sm sm:text-lg max-w-2xl mx-auto">
-                    Préparez vos concours avec les meilleures ressources du Collège Vogt.
+                    Préparez vos concours avec les meilleures ressources de Saint Jean.
                 </p>
             </div>
 

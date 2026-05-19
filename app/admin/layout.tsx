@@ -5,7 +5,7 @@ import { LogoutButton } from "@/components/LogoutButton"
 import Link from "next/link"
 import {
   LayoutDashboard, BookOpen, BookMarked,
-  Users, Settings, ChevronRight, Menu, X
+  Users, Settings, ChevronRight, Menu, X, GraduationCap
 } from "lucide-react"
 import { useSession } from "next-auth/react"
 import Logo from "@/components/Logo"
@@ -25,6 +25,11 @@ const navLinks = [
     href: "/admin/matieres",
     label: "Matières",
     icon: BookMarked,
+  },
+  {
+    href: "/admin/filieres",
+    label: "Filières",
+    icon: GraduationCap,
   },
   {
     href: "/admin/utilisateurs",

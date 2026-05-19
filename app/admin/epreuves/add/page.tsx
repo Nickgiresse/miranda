@@ -26,10 +26,7 @@ type Filiere = {
 
 type Matiere = { id: string; nom: string; filiereId: string }
 
-const NIVEAUX = [
-  { value: 1, label: "Niveau 1" },
-  { value: 2, label: "Niveau 2" },
-] as const
+// Plus de NIVEAUX statiques hardcodés
 
 const TYPES_EPREUVE = [
   { value: "EPREUVE_SIMPLE", label: "Épreuve simple" },
@@ -50,7 +47,7 @@ export default function AdminEpreuvesAddPage() {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   const [titre, setTitre] = useState("")
-  const [niveau, setNiveau] = useState<1 | 2>(1)
+  const [niveau, setNiveau] = useState<number>(1)
   const [filiereCode, setFiliereCode] = useState("")
   const [matiereId, setMatiereId] = useState("")
   const [type, setType] = useState<(typeof TYPES_EPREUVE)[number]["value"]>("EPREUVE_SIMPLE")
@@ -241,24 +238,17 @@ export default function AdminEpreuvesAddPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1">Niveau *</label>
-            <select
-              value={niveau}
-              onChange={(e) => setNiveau(Number(e.target.value) as 1 | 2)}
-              className="w-full rounded-xl bg-white ring-1 ring-slate-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900"
-            >
-              {NIVEAUX.map((n) => (
-                <option key={n.value} value={n.value}>
-                  {n.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
             <label className="block text-sm font-semibold text-slate-700 mb-1">Filière *</label>
             <select
               value={filiereCode}
-              onChange={(e) => setFiliereCode(e.target.value)}
+              onChange={(e) => {
+                const code = e.target.value
+                setFiliereCode(code)
+                const selected = filieres.find((f) => f.code === code)
+                if (selected && selected.filiereNiveaux && selected.filiereNiveaux.length > 0) {
+                  setNiveau(selected.filiereNiveaux[0].niveau.numero)
+                }
+              }}
               disabled={loadingFilieres}
               className="w-full rounded-xl bg-white ring-1 ring-slate-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 disabled:opacity-50"
             >
@@ -277,6 +267,22 @@ export default function AdminEpreuvesAddPage() {
             {fieldErrors.filiere && (
               <p className="mt-1 text-sm text-red-600 dark:text-red-400">{fieldErrors.filiere}</p>
             )}
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-1">Niveau *</label>
+            <select
+              value={niveau}
+              onChange={(e) => setNiveau(Number(e.target.value))}
+              disabled={!filiereCode}
+              className="w-full rounded-xl bg-white ring-1 ring-slate-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 disabled:opacity-50"
+            >
+              {!filiereCode && <option value="">Choisir d'abord une filière</option>}
+              {selectedFiliere?.filiereNiveaux.map((fn) => (
+                <option key={fn.id} value={fn.niveau.numero}>
+                  {fn.niveau.label ?? `Niveau ${fn.niveau.numero}`}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
