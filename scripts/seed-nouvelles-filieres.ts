@@ -18,6 +18,19 @@ if (!connectionString) throw new Error("DATABASE_URL manquant. Définissez-le da
 const adapter = new PrismaPg({ connectionString })
 const prisma = new PrismaClient({ adapter })
 
+async function getOrCreateNiveau(
+  numero: number, 
+  label: string
+) {
+  const existing = await prisma.niveau.findFirst({
+    where: { numero, label }
+  })
+  if (existing) return existing
+  return prisma.niveau.create({
+    data: { numero, label }
+  })
+}
+
 async function main() {
   console.log("Ajout des nouvelles filières...")
 
@@ -110,23 +123,8 @@ async function main() {
     // Pour chaque niveau, trouve ou crée le Niveau
     // puis crée le FiliereNiveau
     for (const n of f.niveaux) {
-      // Cherche si le niveau existe (par numero ET label)
-      let niveau = await prisma.niveau.findFirst({
-        where: { 
-          numero: n.numero,
-          label: n.label
-        }
-      })
-
-      // Si pas trouvé, crée-le
-      if (!niveau) {
-        niveau = await prisma.niveau.create({
-          data: { 
-            numero: n.numero,
-            label: n.label
-          }
-        })
-      }
+      // Cherche ou crée le niveau via la fonction getOrCreateNiveau
+      const niveau = await getOrCreateNiveau(n.numero, n.label)
 
       // Crée la liaison FiliereNiveau
       await prisma.filiereNiveau.create({

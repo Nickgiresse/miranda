@@ -18,48 +18,96 @@ if (!connectionString) throw new Error("DATABASE_URL manquant. Définissez-le da
 const adapter = new PrismaPg({ connectionString })
 const prisma = new PrismaClient({ adapter })
 
-const filieres = [
-  { code: "SPH", nom: "Science Politique et Humanités", couleur: "#22c55e" },
-  { code: "IGC", nom: "Ingénieur Génie Civil", couleur: "#3b82f6" },
-  { code: "MF", nom: "Management et Finance", couleur: "#ef4444" },
-  { code: "IGEA", nom: "Ingénieur en Géosciences, Environnement et Agro-industrie", couleur: "#800020" },
-  { code: "INGE", nom: "Ingénieur Généraliste", couleur: "#9333ea" },
-]
+async function getOrCreateNiveau(
+  numero: number, 
+  label: string
+) {
+  const existing = await prisma.niveau.findFirst({
+    where: { numero, label }
+  })
+  if (existing) return existing
+  return prisma.niveau.create({
+    data: { numero, label }
+  })
+}
 
 async function main() {
-  // 1. Crée les niveaux
-  const n1 = await prisma.niveau.upsert({
-    where: { numero: 1 },
-    update: {},
-    create: { numero: 1, label: "Niveau 1" },
-  })
-  const n2 = await prisma.niveau.upsert({
-    where: { numero: 2 },
-    update: {},
-    create: { numero: 2, label: "Niveau 2" },
-  })
+  console.log("Seeding filières et niveaux...")
 
-  // 2. Crée les filières + liens niveaux
-  for (const f of filieres) {
-    const filiere = await prisma.filiere.upsert({
-      where: { code: f.code },
-      update: {},
-      create: { nom: f.nom, code: f.code, couleur: f.couleur },
+  // Niveaux standards
+  const n1 = await getOrCreateNiveau(1, "Niveau 1")
+  const n2 = await getOrCreateNiveau(2, "Niveau 2")
+
+  // Filières existantes SPH, IGC, MF, IGEA, INGE
+  const filieresDonnees = [
+    { 
+      code: "SPH", 
+      nom: "Sciences Physiques", 
+      couleur: "#22c55e",
+      niveaux: [n1, n2]
+    },
+    { 
+      code: "IGC", 
+      nom: "Informatique de Gestion", 
+      couleur: "#3b82f6",
+      niveaux: [n1, n2]
+    },
+    { 
+      code: "MF", 
+      nom: "Management et Finance", 
+      couleur: "#ef4444",
+      niveaux: [n1, n2]
+    },
+    { 
+      code: "IGEA", 
+      nom: "Informatique de Gestion et Administration",
+      couleur: "#800020",
+      niveaux: [n1, n2]
+    },
+    { 
+      code: "INGE", 
+      nom: "Ingénierie", 
+      couleur: "#9333ea",
+      niveaux: [n1, n2]
+    },
+  ]
+
+  for (const f of filieresDonnees) {
+    let filiere = await prisma.filiere.findFirst({
+      where: { code: f.code }
     })
-    for (const niveau of [n1, n2]) {
-      await prisma.filiereNiveau.upsert({
-        where: {
-          filiereId_niveauId: {
-            filiereId: filiere.id,
-            niveauId: niveau.id,
-          },
-        },
-        update: {},
-        create: { filiereId: filiere.id, niveauId: niveau.id },
+    if (!filiere) {
+      filiere = await prisma.filiere.create({
+        data: {
+          code: f.code,
+          nom: f.nom,
+          couleur: f.couleur,
+          isActive: true,
+        }
       })
+      console.log(`✅ Filière ${f.code} créée`)
     }
-    console.log("✅ " + f.code + " créée")
+
+    for (const niveau of f.niveaux) {
+      const existing = await prisma.filiereNiveau
+        .findFirst({
+          where: { 
+            filiereId: filiere.id, 
+            niveauId: niveau.id 
+          }
+        })
+      if (!existing) {
+        await prisma.filiereNiveau.create({
+          data: { 
+            filiereId: filiere.id, 
+            niveauId: niveau.id 
+          }
+        })
+      }
+    }
   }
+
+  console.log("✅ Seed terminé !")
 }
 
 main()
