@@ -116,7 +116,7 @@ export default function SettingsForm({ settings }: Props) {
                 onChange={(e) =>
                   setForm({ ...form, contactAdresse: e.target.value })
                 }
-                placeholder="Collège Mvong, Cameroun"
+                placeholder="Saint Jean, Cameroun"
                 rows={2}
                 className="w-full pl-10 pr-4 py-3 bg-slate-50 rounded-xl text-sm ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 transition-all duration-200 resize-none"
               />

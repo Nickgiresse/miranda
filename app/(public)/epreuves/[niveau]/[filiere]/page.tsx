@@ -25,8 +25,9 @@ export default async function EpreuvesFilierePage(props: {
   const params = await props.params
   const { niveau, filiere } = params
 
-  const niveauNum = parseInt(niveau.replace("niveau-", ""), 10)
-  if (Number.isNaN(niveauNum) || (niveauNum !== 1 && niveauNum !== 2)) {
+  const cleanNiveau = niveau.startsWith("niveau-") ? niveau.replace("niveau-", "") : niveau
+  const niveauNum = parseInt(cleanNiveau, 10)
+  if (Number.isNaN(niveauNum)) {
     notFound()
   }
 
@@ -87,7 +88,7 @@ export default async function EpreuvesFilierePage(props: {
             <ArrowLeft className="h-4 w-4" /> Retour aux filières
           </Link>
           <h1 className="text-2xl font-bold text-slate-900">
-            Épreuves {filiereNiveau.filiere.nom} ({filiereNiveau.filiere.code}) — Niveau {niveauNum}
+            Épreuves {filiereNiveau.filiere.nom} ({filiereNiveau.filiere.code}) — {filiereNiveau.niveau.label ?? `Niveau ${niveauNum}`}
           </h1>
           <p className="text-slate-400 text-sm mt-1">{epreuves.length} épreuve(s) disponible(s)</p>
         </div>

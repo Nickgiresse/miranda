@@ -49,7 +49,7 @@ export default function Home() {
             transition={{ duration: 0.6, ease: "easeOut", delay: 0.05 }}
             className="text-base md:text-lg text-slate-600 max-w-2xl mx-auto md:mx-0 mb-8"
           >
-            La plateforme de référence pour les étudiants de Prepas Vogt. Téléchargez des concours, devoirs et sujets d'examen pour préparer votre avenir.
+            La plateforme de référence pour les étudiants de Saint Jean. Téléchargez des concours, devoirs et sujets d'examen pour préparer votre avenir.
           </motion.p>
           <motion.div
             variants={fadeUp}
@@ -77,7 +77,7 @@ export default function Home() {
 
       {/* 
         -------------------------------------------
-          SECTION 2: PREPAS VOGT (About) 
+          SECTION 2: SAINT JEAN (About) 
         -------------------------------------------
       */}
       <section className="py-12 md:py-16 lg:py-20 bg-slate-50 px-4 md:px-6 lg:px-8">
@@ -91,9 +91,9 @@ export default function Home() {
               variants={fadeUp}
               transition={{ duration: 0.6, ease: "easeOut" }}
             >
-              <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">À propos de Miranda & Prepas Vogt</h2>
+              <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900">À propos de Miranda & Saint Jean</h2>
               <p className="text-slate-600 text-lg leading-relaxed">
-                Née de l'excellence académique du <strong>Prepas Vogt</strong>, cette application a été conçue pour offrir aux élèves un accès illimité aux ressources pédagogiques.
+                Née de l'excellence académique de <strong>Saint Jean</strong>, cette application a été conçue pour offrir aux élèves un accès illimité aux ressources pédagogiques.
                 Que vous soyez en Niveau 1 ou Niveau 2, nous centralisons toutes les épreuves passées pour faciliter vos révisions.
               </p>
               <ul className="space-y-3 text-slate-900">

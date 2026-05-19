@@ -81,10 +81,12 @@ model VerificationToken {
 
 model Niveau {
   id     Int    @id @default(autoincrement())
-  numero Int    @unique // 1 ou 2
-  label  String // ex: "Niveau 1", "Niveau 2"
+  numero Int    // 1, 2, 3, 4, 5
+  label  String // ex: "L1", "L2", "L3", "Master 1", "Master 2"
 
   filiereNiveaux FiliereNiveau[]
+
+  @@unique([numero, label])
 }
 
 model Filiere {
